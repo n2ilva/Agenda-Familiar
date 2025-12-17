@@ -5,6 +5,45 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@components/*": [
+        "./components/*"
+      ],
+      "@screens/*": [
+        "./screens/*"
+      ],
+      "@services/*": [
+        "./services/*"
+      ],
+      "@store/*": [
+        "./store/*"
+      ],
+      "@hooks/*": [
+        "./hooks/*"
+      ],
+      "@utils/*": [
+        "./utils/*"
+      ],
+      "@types": [
+        "./types"
+      ],
+      "@styles/*": [
+        "./styles/*"
+      ],
+      "@navigation/*": [
+        "./navigation/*"
+      ],
+      "@constants/*": [
+        "./constants/*"
+      ],
+      "@assets/*": [
+        "./assets/*"
+      ],
+      "@domain/*": [
+        "./domain/*"
+      ],
+      "@infrastructure/*": [
+        "./infrastructure/*"
       ]
     }
   },
