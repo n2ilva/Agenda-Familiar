@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserStore } from '@store/userStore';
 import { authService } from '@services/authService';
 import { userService } from '@services/userService';
@@ -99,89 +100,91 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.primary }]}>Agenda Familiar</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Organize suas tarefas compartilhando com sua família e amigos
-        </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: colors.primary }]}>Agenda Familiar</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Organize suas tarefas compartilhando com sua família e amigos
+          </Text>
 
-        <View style={styles.form}>
-          <TextInput
-            style={[styles.input, { borderColor: colors.border, color: colors.text }]}
-            placeholder="Email"
-            placeholderTextColor={colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            editable={!loading && !isGoogleLoading}
-          />
-
-          <View style={[styles.passwordContainer, { borderColor: colors.border }]}>
+          <View style={styles.form}>
             <TextInput
-              style={[styles.passwordInput, { color: colors.text }]}
-              placeholder="Senha"
+              style={[styles.input, { borderColor: colors.border, color: colors.text }]}
+              placeholder="Email"
               placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
               editable={!loading && !isGoogleLoading}
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Ionicons
-                name={showPassword ? 'eye-off' : 'eye'}
-                size={22}
-                color={colors.textSecondary}
+
+            <View style={[styles.passwordContainer, { borderColor: colors.border }]}>
+              <TextInput
+                style={[styles.passwordInput, { color: colors.text }]}
+                placeholder="Senha"
+                placeholderTextColor={colors.textSecondary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                editable={!loading && !isGoogleLoading}
               />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={22}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: colors.primary }, (loading || isGoogleLoading) && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={loading || isGoogleLoading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.buttonText}>Entrar</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.dividerContainer}>
+              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+              <Text style={[styles.dividerText, { color: colors.textSecondary }]}>ou</Text>
+              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.googleButton, { borderColor: colors.border, backgroundColor: colors.background }, (loading || isGoogleLoading) && styles.buttonDisabled]}
+              onPress={() => promptAsync()}
+              disabled={!request || loading || isGoogleLoading}
+            >
+              {isGoogleLoading ? (
+                <ActivityIndicator color={colors.text} />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={20} color={colors.text} style={{ marginRight: 8 }} />
+                  <Text style={styles.googleButtonText}>Entrar com Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={[styles.footerText, { color: colors.textSecondary }]}>Não tem conta? </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Register')}
+              disabled={loading || isGoogleLoading}
+            >
+              <Text style={[styles.registerLink, { color: colors.primary }]}>Criar</Text>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colors.primary }, (loading || isGoogleLoading) && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading || isGoogleLoading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.buttonText}>Entrar</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.dividerContainer}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>ou</Text>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.googleButton, { borderColor: colors.border, backgroundColor: colors.background }, (loading || isGoogleLoading) && styles.buttonDisabled]}
-            onPress={() => promptAsync()}
-            disabled={!request || loading || isGoogleLoading}
-          >
-            {isGoogleLoading ? (
-              <ActivityIndicator color={colors.text} />
-            ) : (
-              <>
-                <Ionicons name="logo-google" size={20} color={colors.text} style={{ marginRight: 8 }} />
-                <Text style={styles.googleButtonText}>Entrar com Google</Text>
-              </>
-            )}
-          </TouchableOpacity>
-
         </View>
-
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.textSecondary }]}>Não tem conta? </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Register')}
-            disabled={loading || isGoogleLoading}
-          >
-            <Text style={[styles.registerLink, { color: colors.primary }]}>Criar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -192,10 +195,14 @@ const styles = StyleSheet.create({
     flex: 1,
     // Dynamic BG
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
-    flex: 1,
     padding: spacing.lg,
+    paddingTop: spacing.xxl,
     justifyContent: 'center',
+    flex: 1,
   },
   title: {
     fontSize: fontSize.xxl,

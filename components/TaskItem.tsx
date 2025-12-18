@@ -3,6 +3,7 @@ import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { Task } from '@types';
 import { useThemeColors } from '@hooks/useThemeColors';
+import { useTranslation } from 'react-i18next';
 import { spacing, fontSize, fontWeight } from '@styles/spacing';
 import { formatDate } from '@utils/dateUtils';
 import { getCategoryColor, getCategoryLabel, getCategoryIcon } from '@utils/taskUtils';
@@ -19,6 +20,7 @@ interface TaskItemProps {
 }
 
 export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskToggle, onDelete, isDeleted }: TaskItemProps) {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const { categories } = useCategoryStore();
 
@@ -28,7 +30,7 @@ export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskTog
     if (!subtasks || subtasks.length === 0) return {};
     const groups: { [key: string]: Task['subtasks'] } = {};
     subtasks.forEach((subtask) => {
-      const cat = subtask.category || 'Sem Categoria';
+      const cat = subtask.category || t('common.no_category', 'Sem Categoria');
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(subtask);
     });
@@ -39,7 +41,6 @@ export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskTog
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
   const categoryColor = getCategoryColor(task.category, categories);
   const categoryIcon = getCategoryIcon(task.category, categories);
-  const recurrenceLabels: Record<string, string> = { daily: 'Diariamente', weekly: 'Semanalmente', monthly: 'Mensalmente', yearly: 'Anualmente' };
   const isRecurring = task.recurrence && task.recurrence !== 'none';
 
   return (
@@ -48,8 +49,8 @@ export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskTog
       { borderLeftColor: categoryColor, borderLeftWidth: 4, backgroundColor: colors.surface },
       isDeleted && { opacity: 0.5, backgroundColor: colors.background }
     ]}>
-      <TouchableOpacity 
-        style={styles.container} 
+      <TouchableOpacity
+        style={styles.container}
         onPress={() => !isDeleted && onPress(task)}
         disabled={isDeleted}
       >
@@ -66,7 +67,7 @@ export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskTog
             </View>
             {isDeleted && (
               <Text style={[styles.categoryLabel, { color: colors.danger, marginLeft: 8 }]}>
-                EXCLUÍDA
+                {t('tasks.deleted', 'EXCLUÍDA')}
               </Text>
             )}
           </View>
@@ -87,15 +88,15 @@ export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskTog
             </TouchableOpacity>
             <View style={styles.content}>
               <Text style={[
-                styles.title, 
-                { color: colors.text }, 
+                styles.title,
+                { color: colors.text },
                 (task.completed || isDeleted) && styles.titleCompleted
               ]} numberOfLines={1}>{task.title}</Text>
               {task.description ? <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={3}>{task.description}</Text> : null}
               <Text style={[styles.date, { color: colors.textSecondary }]}>
                 {formatDate(task.dueDate)}
                 {task.dueTime ? ` • ${task.dueTime}` : ''}
-                {isRecurring && <Text style={[styles.recurrenceText, { color: colors.primary }]}>{' • '}{recurrenceLabels[task.recurrence]}</Text>}
+                {isRecurring && <Text style={[styles.recurrenceText, { color: colors.primary }]}>{' • '}{t(`recurrence.${task.recurrence}`)}</Text>}
               </Text>
             </View>
             {isRecurring && onSkip && !task.completed && !isDeleted && (
@@ -117,7 +118,7 @@ export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskTog
         <View style={[styles.subtasksContainer, { borderTopColor: colors.border }]}>
           {Object.entries(groupedSubtasks).map(([category, subtasks]) => (
             <View key={category} style={styles.subtaskGroup}>
-              {category !== 'Sem Categoria' && category !== '' && (
+              {category !== t('common.no_category', 'Sem Categoria') && category !== '' && (
                 <Text style={[styles.subtaskCategoryHeader, { color: colors.primary }]}>{category}</Text>
               )}
               {subtasks.map((subtask) => (
@@ -136,8 +137,8 @@ export default function TaskItem({ task, onPress, onToggle, onSkip, onSubtaskTog
                     {subtask.completed && <Ionicons name="checkmark" size={12} color="#FFF" />}
                   </TouchableOpacity>
                   <Text style={[
-                    styles.subtaskText, 
-                    { color: colors.text }, 
+                    styles.subtaskText,
+                    { color: colors.text },
                     (subtask.completed || isDeleted) && styles.titleCompleted
                   ]}>
                     {subtask.title}

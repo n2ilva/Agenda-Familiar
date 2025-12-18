@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '@store/userStore';
 import { authService } from '@services/authService';
 import PickerModal from '@components/PickerModal';
+import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '@hooks/useThemeColors';
 import { spacing, fontSize, fontWeight } from '@styles/spacing';
 import * as WebBrowser from 'expo-web-browser';
@@ -26,6 +27,7 @@ import type { Family } from '@types';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SettingsScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const { user, preferences, setPreferences, logout, setUser } = useUserStore();
   const colors = useThemeColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -105,9 +107,9 @@ export default function SettingsScreen({ navigation }: any) {
   };
 
   const themeOptions = [
-    { label: 'Sistema', value: 'system' },
-    { label: 'Claro', value: 'light' },
-    { label: 'Escuro', value: 'dark' },
+    { label: t('settings.system'), value: 'system' },
+    { label: t('settings.light'), value: 'light' },
+    { label: t('settings.dark'), value: 'dark' },
   ];
 
   const languageOptions = [
@@ -116,16 +118,16 @@ export default function SettingsScreen({ navigation }: any) {
   ];
 
   const handleLogout = () => {
-    Alert.alert('Sair', 'Tem certeza que deseja sair da sua conta?', [
-      { text: 'Cancelar', style: 'cancel' },
+    Alert.alert(t('settings.logout'), t('common.confirm_logout', 'Tem certeza que deseja sair da sua conta?'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sair',
+        text: t('settings.logout'),
         onPress: async () => {
           try {
             await authService.logout();
             logout();
           } catch (error) {
-            Alert.alert('Erro', 'Não foi possível fazer logout');
+            Alert.alert(t('common.error'), t('common.logout_error', 'Não foi possível fazer logout'));
           }
         },
         style: 'destructive',
@@ -135,9 +137,9 @@ export default function SettingsScreen({ navigation }: any) {
 
   const getThemeLabel = () => {
     switch (preferences?.theme) {
-      case 'dark': return 'Escuro';
-      case 'light': return 'Claro';
-      default: return 'Sistema';
+      case 'dark': return t('settings.dark');
+      case 'light': return t('settings.light');
+      default: return t('settings.system');
     }
   };
 
@@ -149,7 +151,7 @@ export default function SettingsScreen({ navigation }: any) {
     <ScrollView style={styles.container}>
       {/* Profile Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Perfil</Text>
+        <Text style={styles.sectionTitle}>{t('settings.profile')}</Text>
         <View style={styles.profileBox}>
           {user?.photoURL ? (
             <RNImage
@@ -168,7 +170,7 @@ export default function SettingsScreen({ navigation }: any) {
 
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>
-              {user?.displayName || 'Usuário'}
+              {user?.displayName || t('common.user', 'Usuário')}
             </Text>
             <Text style={styles.profileEmail}>{user?.email}</Text>
           </View>
@@ -182,7 +184,7 @@ export default function SettingsScreen({ navigation }: any) {
             disabled={!request || isLinking}
           >
             <Ionicons name="logo-google" size={20} color={colors.primary} />
-            <Text style={styles.linkText}>{isLinking ? 'Vinculando...' : 'Vincular Google'}</Text>
+            <Text style={styles.linkText}>{isLinking ? t('settings.linking') : t('settings.link_google')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -190,7 +192,7 @@ export default function SettingsScreen({ navigation }: any) {
       {/* Admin Section */}
       {user?.role === 'admin' && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Administração</Text>
+          <Text style={styles.sectionTitle}>{t('settings.administration')}</Text>
           <TouchableOpacity
             style={styles.settingRow}
             onPress={() => navigation.navigate('Approvals')}
@@ -202,8 +204,8 @@ export default function SettingsScreen({ navigation }: any) {
                 color={colors.primary}
               />
               <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>Aprovações Pendentes</Text>
-                <Text style={styles.settingValue}>Gerenciar solicitações</Text>
+                <Text style={styles.settingLabel}>{t('settings.approvals')}</Text>
+                <Text style={styles.settingValue}>{t('settings.manage_requests', 'Gerenciar solicitações')}</Text>
               </View>
             </View>
             <Ionicons
@@ -220,8 +222,8 @@ export default function SettingsScreen({ navigation }: any) {
                 color={colors.primary}
               />
               <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>Família: {family?.name || 'Carregando...'}</Text>
-                <Text style={styles.settingValue}>Código: {family?.code || '...'}</Text>
+                <Text style={styles.settingLabel}>{t('common.family', 'Família')}: {family?.name || t('common.loading')}</Text>
+                <Text style={styles.settingValue}>{t('common.code', 'Código')}: {family?.code || '...'}</Text>
               </View>
             </View>
             <TouchableOpacity onPress={copyToClipboard} style={{ padding: 8 }}>
@@ -240,8 +242,8 @@ export default function SettingsScreen({ navigation }: any) {
                 color={colors.primary}
               />
               <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>Gerenciar Membros</Text>
-                <Text style={styles.settingValue}>Ver lista e permissões</Text>
+                <Text style={styles.settingLabel}>{t('settings.manage_members')}</Text>
+                <Text style={styles.settingValue}>{t('settings.view_list', 'Ver lista e permissões')}</Text>
               </View>
             </View>
             <Ionicons
@@ -255,7 +257,7 @@ export default function SettingsScreen({ navigation }: any) {
 
       {/* Preferences Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferências</Text>
+        <Text style={styles.sectionTitle}>{t('settings.preferences')}</Text>
 
         {/* Theme */}
         <TouchableOpacity
@@ -265,7 +267,7 @@ export default function SettingsScreen({ navigation }: any) {
           <View style={styles.settingLeft}>
             <Ionicons name="sunny" size={24} color={colors.primary} />
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingLabel}>Tema</Text>
+              <Text style={styles.settingLabel}>{t('settings.theme')}</Text>
               <Text style={styles.settingValue}>{getThemeLabel()}</Text>
             </View>
           </View>
@@ -288,7 +290,7 @@ export default function SettingsScreen({ navigation }: any) {
               color={colors.primary}
             />
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingLabel}>Idioma</Text>
+              <Text style={styles.settingLabel}>{t('settings.language')}</Text>
               <Text style={styles.settingValue}>{getLanguageLabel()}</Text>
             </View>
           </View>
@@ -308,9 +310,9 @@ export default function SettingsScreen({ navigation }: any) {
               color={colors.primary}
             />
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingLabel}>Notificações</Text>
+              <Text style={styles.settingLabel}>{t('settings.notifications')}</Text>
               <Text style={styles.settingValue}>
-                {preferences.notifications ? 'Ativas' : 'Inativas'}
+                {preferences.notifications ? t('settings.active') : t('settings.inactive')}
               </Text>
             </View>
           </View>
@@ -328,7 +330,7 @@ export default function SettingsScreen({ navigation }: any) {
 
       {/* About Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Sobre</Text>
+        <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
             <Ionicons
@@ -337,7 +339,7 @@ export default function SettingsScreen({ navigation }: any) {
               color={colors.primary}
             />
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingLabel}>Versão</Text>
+              <Text style={styles.settingLabel}>{t('settings.version')}</Text>
               <Text style={styles.settingValue}>1.0.0</Text>
             </View>
           </View>
@@ -348,14 +350,14 @@ export default function SettingsScreen({ navigation }: any) {
       <View style={styles.section}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#FFF" />
-          <Text style={styles.logoutText}>Sair da Conta</Text>
+          <Text style={styles.logoutText}>{t('settings.logout')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Modals */}
       <PickerModal
         visible={showThemePicker}
-        title="Selecione o tema"
+        title={t('settings.theme')}
         options={themeOptions}
         onSelect={(value) =>
           setPreferences({ theme: value as 'light' | 'dark' | 'system' })
@@ -365,7 +367,7 @@ export default function SettingsScreen({ navigation }: any) {
 
       <PickerModal
         visible={showLanguagePicker}
-        title="Selecione o idioma"
+        title={t('settings.language')}
         options={languageOptions}
         onSelect={(value) =>
           setPreferences({ language: value as 'pt-BR' | 'en' })

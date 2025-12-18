@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserStore } from '@store/userStore';
 import { familyService } from '@services/familyService';
 import { colors } from '@styles/colors';
@@ -59,60 +60,64 @@ export default function FamilySetupScreen() {
     const styles = makeStyles(themeColors);
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Bem-vindo ao Agenda Familiar</Text>
-            <Text style={styles.subtitle}>
-                Para começar, você precisa criar uma nova família ou entrar em uma existente.
-            </Text>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                <View style={styles.content}>
+                    <Text style={styles.title}>Bem-vindo ao Agenda Familiar</Text>
+                    <Text style={styles.subtitle}>
+                        Para começar, você precisa criar uma nova família ou entrar em uma existente.
+                    </Text>
 
-            <View style={styles.tabContainer}>
-                <TouchableOpacity
-                    style={[styles.tab, mode === 'create' && styles.activeTab]}
-                    onPress={() => setMode('create')}
-                >
-                    <Text style={[styles.tabText, mode === 'create' && styles.activeTabText]}>Criar Família</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.tab, mode === 'join' && styles.activeTab]}
-                    onPress={() => setMode('join')}
-                >
-                    <Text style={[styles.tabText, mode === 'join' && styles.activeTabText]}>Entrar com Código</Text>
-                </TouchableOpacity>
-            </View>
+                    <View style={styles.tabContainer}>
+                        <TouchableOpacity
+                            style={[styles.tab, mode === 'create' && styles.activeTab]}
+                            onPress={() => setMode('create')}
+                        >
+                            <Text style={[styles.tabText, mode === 'create' && styles.activeTabText]}>Criar Família</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.tab, mode === 'join' && styles.activeTab]}
+                            onPress={() => setMode('join')}
+                        >
+                            <Text style={[styles.tabText, mode === 'join' && styles.activeTabText]}>Entrar com Código</Text>
+                        </TouchableOpacity>
+                    </View>
 
-            <View style={styles.form}>
-                {mode === 'create' ? (
-                    <>
-                        <Text style={styles.label}>Nome da Família</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Ex: Família Silva"
-                            placeholderTextColor={themeColors.textSecondary}
-                            value={name}
-                            onChangeText={setName}
-                        />
-                        <TouchableOpacity style={styles.button} onPress={handleCreate} disabled={loading}>
-                            {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Criar Família</Text>}
-                        </TouchableOpacity>
-                    </>
-                ) : (
-                    <>
-                        <Text style={styles.label}>Código da Família</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Ex: X9J2K1"
-                            placeholderTextColor={themeColors.textSecondary}
-                            value={code}
-                            onChangeText={(t) => setCode(t.toUpperCase())}
-                            maxLength={6}
-                        />
-                        <TouchableOpacity style={styles.button} onPress={handleJoin} disabled={loading}>
-                            {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar na Família</Text>}
-                        </TouchableOpacity>
-                    </>
-                )}
-            </View>
-        </View>
+                    <View style={styles.form}>
+                        {mode === 'create' ? (
+                            <>
+                                <Text style={styles.label}>Nome da Família</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Ex: Família Silva"
+                                    placeholderTextColor={themeColors.textSecondary}
+                                    value={name}
+                                    onChangeText={setName}
+                                />
+                                <TouchableOpacity style={styles.button} onPress={handleCreate} disabled={loading}>
+                                    {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Criar Família</Text>}
+                                </TouchableOpacity>
+                            </>
+                        ) : (
+                            <>
+                                <Text style={styles.label}>Código da Família</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Ex: X9J2K1"
+                                    placeholderTextColor={themeColors.textSecondary}
+                                    value={code}
+                                    onChangeText={(t) => setCode(t.toUpperCase())}
+                                    maxLength={6}
+                                />
+                                <TouchableOpacity style={styles.button} onPress={handleJoin} disabled={loading}>
+                                    {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar na Família</Text>}
+                                </TouchableOpacity>
+                            </>
+                        )}
+                    </View>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -120,6 +125,12 @@ const makeStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    scrollContent: {
+        flexGrow: 1,
+    },
+    content: {
+        flex: 1,
         padding: 24,
         justifyContent: 'center',
     },

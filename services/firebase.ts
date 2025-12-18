@@ -1,9 +1,23 @@
-// IMPORTANT: This must be the first import for Firebase to work on React Native
+// IMPORTANT: This must be the very first part of the file to fix persistence issues
+// Polyfill for localStorage which is expected by some Firebase modules even in React Native
+if (typeof global !== 'undefined' && !(global as any).localStorage) {
+  (global as any).localStorage = {
+    getItem: (_key: string) => null,
+    setItem: (_key: string, _value: string) => { },
+    removeItem: (_key: string) => { },
+    clear: () => { },
+    length: 0,
+    key: (_index: number) => null,
+  };
+}
+
+// Required for Firebase to work on React Native
 import 'react-native-get-random-values';
 
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
 // Get Firebase config from app.config.js extra field or fallback to env vars
@@ -43,55 +57,28 @@ if (missingVars.length > 0) {
 
 // Initialize Firebase
 if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+  const app = firebase.initializeApp(firebaseConfig);
+
+  // High-reliability Auth initialization for React Native
+  try {
+    // We use the modular initializeAuth to explicitly set AsyncStorage persistence
+    const { initializeAuth, getReactNativePersistence } = require('firebase/auth');
+
+    if (getReactNativePersistence && AsyncStorage) {
+      console.log('[Firebase] Initializing Auth with ReactNativePersistence (AsyncStorage)...');
+      initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage)
+      });
+      console.log('[Firebase] Auth initialization successful');
+    }
+  } catch (error) {
+    // If modular initialization fails or isn't needed, we continue with compat
+    console.log('[Firebase] Note: Using standard Auth initialization');
+  }
 }
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
-
-// Configure Auth persistence for React Native
-// React Native uses AsyncStorage automatically, but we need to ensure it's set correctly
-if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
-  // React Native environment
-  console.log('[Firebase] Configuring Auth persistence for React Native...');
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-      console.log('[Firebase] Auth persistence enabled (LOCAL) for React Native');
-    })
-    .catch((error) => {
-      console.error('[Firebase] Failed to set Auth persistence:', error);
-    });
-} else {
-  // Web environment
-  console.log('[Firebase] Configuring Auth persistence for Web...');
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-      console.log('[Firebase] Auth persistence enabled (LOCAL) for Web');
-    })
-    .catch((error) => {
-      console.error('[Firebase] Failed to set Auth persistence:', error);
-    });
-}
-
-// Enable offline persistence with platform detection
-// Only enable IndexedDB persistence on web platform (where LocalStorage exists)
-if (
-  typeof window !== 'undefined' &&
-  typeof window.localStorage !== 'undefined'
-) {
-  // Web platform - use IndexedDB
-  firestore.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.warn('Firestore: Multiple tabs open, persistence disabled');
-    } else if (err.code === 'unimplemented') {
-      console.warn('Firestore: Persistence not supported in this browser');
-    }
-  });
-} else {
-  // React Native: Persistence is automatically enabled via AsyncStorage if installed.
-  console.log('React Native detected - Firestore persistence via AsyncStorage');
-}
-
 export const db = firestore;
 
 export default firebase;

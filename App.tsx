@@ -11,6 +11,8 @@ import { useCategoryStore } from '@store/categoryStore';
 import { authService } from '@services/authService';
 import { auth } from '@services/firebase';
 import { notificationService } from '@services/notificationService';
+import './services/i18n';
+import i18n from 'i18next';
 
 export default function App() {
   const setUser = useUserStore((state) => state.setUser);
@@ -64,6 +66,13 @@ export default function App() {
       };
     }
   }, [user?.familyId]);
+
+  useEffect(() => {
+    if (preferences.language) {
+      console.log('[App] Syncing i18n language:', preferences.language);
+      i18n.changeLanguage(preferences.language);
+    }
+  }, [preferences.language]);
 
   return (
     <GestureHandlerRootView style={styles.root}>

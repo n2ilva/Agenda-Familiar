@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTaskStore } from '@store/taskStore';
 import { useUserStore } from '@store/userStore';
 import TaskItem from '@components/TaskItem';
@@ -17,6 +18,7 @@ import { createStyles } from './CalendarScreen.styles';
 import type { Task } from '@types';
 
 export default function CalendarScreen({ navigation }: any) {
+  const { t, i18n } = useTranslation();
   const { tasks } = useTaskStore();
   const { preferences } = useUserStore();
   const colors = useThemeColors();
@@ -109,7 +111,8 @@ export default function CalendarScreen({ navigation }: any) {
             <Text style={styles.tasksTitle}>
               {(() => {
                 const [y, m, d] = selectedDate.split('-').map(Number);
-                return new Date(y, m - 1, d).toLocaleDateString('pt-BR', {
+                const locale = i18n.language === 'en' ? 'en-US' : 'pt-BR';
+                return new Date(y, m - 1, d).toLocaleDateString(locale, {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
@@ -125,7 +128,7 @@ export default function CalendarScreen({ navigation }: any) {
                 size={48}
                 color={colors.textSecondary}
               />
-              <Text style={styles.emptyText}>Nenhuma tarefa neste dia</Text>
+              <Text style={styles.emptyText}>{t('calendar.no_tasks_day')}</Text>
             </View>
           ) : (
             <FlatList

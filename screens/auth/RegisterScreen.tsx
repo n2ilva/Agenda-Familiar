@@ -9,10 +9,11 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUserStore } from '@store/userStore';
 import { authService } from '@services/authService';
 import { spacing, fontSize } from '@styles/spacing';
-import { colors } from '@styles/colors';
+import { useThemeColors } from '@hooks/useThemeColors';
 import { translateAuthError, isValidEmail, isValidPassword } from '@utils/authErrors';
 
 export default function RegisterScreen({ navigation }: any) {
@@ -21,6 +22,8 @@ export default function RegisterScreen({ navigation }: any) {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const setUser = useUserStore((state) => state.setUser);
+  const colors = useThemeColors();
+  const styles = makeStyles(colors);
 
   const handleRegister = async () => {
     if (!email || !password || !displayName) {
@@ -50,88 +53,94 @@ export default function RegisterScreen({ navigation }: any) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>TaskApp</Text>
-        <Text style={styles.subtitle}>Crie sua conta</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Agenda Familiar</Text>
+          <Text style={styles.subtitle}>Crie sua conta</Text>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Nome completo"
-            placeholderTextColor={colors.light.textSecondary}
-            value={displayName}
-            onChangeText={setDisplayName}
-            editable={!loading}
-          />
+          <View style={styles.form}>
+            <TextInput
+              style={styles.input}
+              placeholder="Nome completo"
+              placeholderTextColor={colors.textSecondary}
+              value={displayName}
+              onChangeText={setDisplayName}
+              editable={!loading}
+            />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.light.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            editable={!loading}
-          />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={colors.textSecondary}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              editable={!loading}
+            />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor={colors.light.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!loading}
-          />
+            <TextInput
+              style={styles.input}
+              placeholder="Senha"
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              editable={!loading}
+            />
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.buttonText}>Registrar</Text>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.buttonText}>Registrar</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Já tem conta? </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login')}
+              disabled={loading}
+            >
+              <Text style={styles.loginLink}>Entrar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Já tem conta? </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            disabled={loading}
-          >
-            <Text style={styles.loginLink}>Entrar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.light.background,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   content: {
     flex: 1,
     padding: spacing.lg,
+    paddingTop: spacing.xxl,
     justifyContent: 'center',
   },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '700',
-    color: colors.light.primary,
+    color: colors.primary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   subtitle: {
     fontSize: fontSize.lg,
-    color: colors.light.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.xxl,
   },
@@ -140,15 +149,15 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.light.border,
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     fontSize: fontSize.base,
-    color: colors.light.text,
+    color: colors.text,
   },
   button: {
-    backgroundColor: colors.light.primary,
+    backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     borderRadius: 8,
     alignItems: 'center',
@@ -169,11 +178,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: fontSize.base,
-    color: colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   loginLink: {
     fontSize: fontSize.base,
-    color: colors.light.primary,
+    color: colors.primary,
     fontWeight: '600',
   },
 });

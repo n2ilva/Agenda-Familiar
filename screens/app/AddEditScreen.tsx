@@ -7,8 +7,10 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
+import { useTranslation } from 'react-i18next';
 import { useCategoryStore } from '@store/categoryStore';
 import { spacing, fontSize } from '@styles/spacing';
 import { getCategoryLabel, getCategoryColor, CATEGORY_OPTIONS } from '@utils/taskUtils';
@@ -22,15 +24,16 @@ import { RECURRENCE_LABELS } from '@constants/task';
 import { CreateCategoryModal } from '@components/CreateCategoryModal';
 import { useUserStore } from '@store/userStore';
 
-const RECURRENCE_OPTIONS = [
-  { label: 'Não repete', value: 'none' },
-  { label: 'Diariamente', value: 'daily' },
-  { label: 'Semanalmente', value: 'weekly' },
-  { label: 'Mensalmente', value: 'monthly' },
-  { label: 'Anualmente', value: 'yearly' },
+const getRecurrenceOptions = (t: any) => [
+  { label: t('recurrence.none'), value: 'none' },
+  { label: t('recurrence.daily'), value: 'daily' },
+  { label: t('recurrence.weekly'), value: 'weekly' },
+  { label: t('recurrence.monthly'), value: 'monthly' },
+  { label: t('recurrence.yearly'), value: 'yearly' },
 ];
 
 export default function AddEditScreen({ route, navigation }: any) {
+  const { t } = useTranslation();
   const { taskId } = route.params || { taskId: null };
   const colors = useThemeColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -65,13 +68,13 @@ export default function AddEditScreen({ route, navigation }: any) {
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
           <Ionicons name="close" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {taskId ? 'Editar Tarefa' : 'Nova Tarefa'}
+          {taskId ? t('tasks.edit_task') : t('tasks.add_task')}
         </Text>
         <TouchableOpacity
           onPress={handleSave}
@@ -103,7 +106,7 @@ export default function AddEditScreen({ route, navigation }: any) {
 
         {/* Category Selection */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>Categoria *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('tasks.category')} *</Text>
           <TouchableOpacity
             style={[styles.categoryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowCategoryPicker(true)}
@@ -115,7 +118,7 @@ export default function AddEditScreen({ route, navigation }: any) {
               ]}
             />
             <Text style={[styles.categoryText, { color: colors.text }]}>
-              {getCategoryLabel(category)}
+              {t(`categories.${category}`, { defaultValue: getCategoryLabel(category) })}
             </Text>
             <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -123,14 +126,14 @@ export default function AddEditScreen({ route, navigation }: any) {
 
         {/* Recurrence Selection */}
         <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>Recorrência</Text>
+          <Text style={[styles.label, { color: colors.text }]}>{t('tasks.recurrence')}</Text>
           <TouchableOpacity
             style={[styles.recurrenceButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => setShowRecurrencePicker(true)}
           >
             <Ionicons name="repeat-outline" size={20} color={colors.primary} />
             <Text style={[styles.recurrenceText, { color: colors.text }]}>
-              {RECURRENCE_LABELS[recurrence]}
+              {t(`recurrence.${recurrence}`, { defaultValue: RECURRENCE_LABELS[recurrence] })}
             </Text>
             <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -147,10 +150,10 @@ export default function AddEditScreen({ route, navigation }: any) {
       <PickerModal
         visible={showCategoryPicker}
         onClose={() => setShowCategoryPicker(false)}
-        title="Selecionar Categoria"
+        title={t('tasks.select_category')}
         options={categories.map(cat => ({
           value: cat.id,
-          label: cat.label,
+          label: t(`categories.${cat.id}`, { defaultValue: cat.label }),
           color: cat.color,
           icon: cat.icon,
         }))}
@@ -163,8 +166,8 @@ export default function AddEditScreen({ route, navigation }: any) {
       <PickerModal
         visible={showRecurrencePicker}
         onClose={() => setShowRecurrencePicker(false)}
-        title="Selecionar Recorrência"
-        options={RECURRENCE_OPTIONS}
+        title={t('tasks.select_recurrence')}
+        options={getRecurrenceOptions(t)}
         onSelect={(value: string) => {
           setRecurrence(value as RecurrenceType);
         }}
@@ -180,7 +183,7 @@ export default function AddEditScreen({ route, navigation }: any) {
           setShowCreateCategoryModal(false);
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

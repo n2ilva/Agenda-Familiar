@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { useTranslation } from 'react-i18next';
 import { useTaskStore } from '@store/taskStore';
 import TaskItem from '@components/TaskItem';
 import { useThemeColors } from '@hooks/useThemeColors';
@@ -22,6 +23,7 @@ import type { Task } from '@types';
 import { CATEGORY_OPTIONS, hexToRGBA } from '@utils/taskUtils';
 
 export default function HomeScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const { tasks, deleteTask, toggleTask, skipTask, toggleSubtask, getTasks } =
     useTaskStore();
   const colors = useThemeColors();
@@ -36,8 +38,8 @@ export default function HomeScreen({ navigation }: any) {
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
   const [routes] = useState([
-    { key: 'today', title: 'Hoje' },
-    { key: 'upcoming', title: 'Próximas' },
+    { key: 'today', title: t('tasks.today') },
+    { key: 'upcoming', title: t('tasks.upcoming') },
   ]);
 
   useFocusEffect(
@@ -51,7 +53,7 @@ export default function HomeScreen({ navigation }: any) {
     try {
       getTasks();
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível carregar as tarefas');
+      Alert.alert(t('common.error'), t('tasks.load_error', 'Não foi possível carregar as tarefas'));
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,7 @@ export default function HomeScreen({ navigation }: any) {
     try {
       await getTasks();
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível atualizar as tarefas');
+      Alert.alert(t('common.error'), t('tasks.update_error', 'Não foi possível atualizar as tarefas'));
     } finally {
       setRefreshing(false);
     }
@@ -74,23 +76,23 @@ export default function HomeScreen({ navigation }: any) {
 
   const handleDeleteTask = (taskId: string) => {
     console.log('handleDeleteTask called with taskId:', taskId);
-    
+
     // On web, confirm() works better than Alert.alert
     if (Platform.OS === 'web') {
-      if (window.confirm('Tem certeza que deseja excluir esta tarefa?')) {
+      if (window.confirm(t('tasks.delete_confirm_msg'))) {
         console.log('User confirmed delete on web');
         deleteTask(taskId);
       }
       return;
     }
-    
+
     Alert.alert(
-      'Excluir Tarefa',
-      'Tem certeza que deseja excluir esta tarefa?',
+      t('tasks.delete_confirm_title'),
+      t('tasks.delete_confirm_msg'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Excluir',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             console.log('User confirmed delete on native');
@@ -103,12 +105,12 @@ export default function HomeScreen({ navigation }: any) {
 
   const handleSkipTask = (taskId: string) => {
     Alert.alert(
-      'Pular Ocorrência',
-      'Deseja pular esta ocorrência da tarefa recorrente?',
+      t('tasks.skip_confirm_title'),
+      t('tasks.skip_confirm_msg'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Pular',
+          text: t('tasks.skip'),
           style: 'default',
           onPress: () => skipTask(taskId),
         },
@@ -120,7 +122,7 @@ export default function HomeScreen({ navigation }: any) {
   const getFilteredTasks = useCallback((dateFilter: 'today' | 'upcoming') => {
     return tasks.filter((t) => {
       const todayStr = new Date().toISOString().split('T')[0];
-      
+
       // 0. Exclude deleted tasks
       if (t.deletedAt) return false;
 
@@ -182,12 +184,12 @@ export default function HomeScreen({ navigation }: any) {
   }).length;
 
   // Pending: active tasks (not deleted, not completed) with future or today's date
-  const pendingCount = tasks.filter(t => 
+  const pendingCount = tasks.filter(t =>
     !t.completed && !t.deletedAt && t.dueDate >= todayStr
   ).length;
 
   // Overdue: active tasks (not deleted, not completed) with past date
-  const overdueCount = tasks.filter(t => 
+  const overdueCount = tasks.filter(t =>
     !t.completed && !t.deletedAt && t.dueDate < todayStr
   ).length;
 
@@ -219,10 +221,10 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.emptyContainer}>
           <Ionicons name="checkmark-done-outline" size={64} color={colors.textSecondary} />
           <Text style={[styles.emptyText, { color: colors.text }]}>
-            Nenhuma tarefa encontrada
+            {t('tasks.no_tasks')}
           </Text>
           <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
-            {index === 0 ? 'Sem tarefas para hoje' : 'Sem tarefas próximas'}
+            {index === 0 ? t('tasks.no_tasks_today') : t('tasks.no_tasks_upcoming')}
           </Text>
         </View>
       }
@@ -277,7 +279,7 @@ export default function HomeScreen({ navigation }: any) {
               { color: selectedStatus === 'pending' ? '#FFF' : colors.textSecondary },
             ]}
           >
-            Pendentes
+            {t('tasks.pending')}
           </Text>
         </TouchableOpacity>
 
@@ -305,7 +307,7 @@ export default function HomeScreen({ navigation }: any) {
               { color: selectedStatus === 'overdue' ? '#FFF' : colors.textSecondary },
             ]}
           >
-            Atrasadas
+            {t('tasks.overdue')}
           </Text>
         </TouchableOpacity>
 
@@ -333,7 +335,7 @@ export default function HomeScreen({ navigation }: any) {
               { color: selectedStatus === 'completed' ? '#FFF' : colors.textSecondary },
             ]}
           >
-            Concluídas
+            {t('tasks.completed')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -343,7 +345,7 @@ export default function HomeScreen({ navigation }: any) {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={[{ label: 'Todas', value: null }, ...CATEGORY_OPTIONS]}
+          data={[{ label: t('common.all'), value: null }, ...CATEGORY_OPTIONS]}
           keyExtractor={(item) => item.value || 'all'}
           contentContainerStyle={styles.filterContent}
           renderItem={({ item }) => {
@@ -376,7 +378,7 @@ export default function HomeScreen({ navigation }: any) {
                     },
                   ]}
                 >
-                  {item.label}
+                  {t(`categories.${item.value}`, { defaultValue: item.label })}
                 </Text>
               </TouchableOpacity>
             );

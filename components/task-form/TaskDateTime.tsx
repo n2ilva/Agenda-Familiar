@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useThemeColors } from '@hooks/useThemeColors';
 import { spacing, fontSize } from '@styles/spacing';
 import { formatDate } from '@utils/dateUtils';
@@ -23,6 +24,7 @@ export const TaskDateTime: React.FC<TaskDateTimeProps> = ({
   onDateChange,
   onTimeChange,
 }) => {
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -51,7 +53,7 @@ export const TaskDateTime: React.FC<TaskDateTimeProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.label, { color: colors.text }]}>Data de Vencimento *</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.due_date')} *</Text>
       <TouchableOpacity
         style={[styles.dateButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
         onPress={() => setShowDatePicker(true)}
@@ -71,7 +73,7 @@ export const TaskDateTime: React.FC<TaskDateTimeProps> = ({
         />
       )}
 
-      <Text style={[styles.label, { color: colors.text }]}>Horário (Opcional)</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.due_time')} ({t('common.optional', 'Opcional')})</Text>
       <View style={styles.timeRow}>
         <TouchableOpacity
           style={[styles.dateButton, styles.timeButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -81,7 +83,7 @@ export const TaskDateTime: React.FC<TaskDateTimeProps> = ({
           <Text style={[styles.dateText, { color: colors.text }]}>
             {dueTime
               ? `${String(dueTime.getHours()).padStart(2, '0')}:${String(dueTime.getMinutes()).padStart(2, '0')}`
-              : 'Sem horário'}
+              : t('tasks.no_time', 'Sem horário')}
           </Text>
         </TouchableOpacity>
 
