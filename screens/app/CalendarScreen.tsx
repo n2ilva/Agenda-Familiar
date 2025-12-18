@@ -107,11 +107,14 @@ export default function CalendarScreen({ navigation }: any) {
               color={colors.primary}
             />
             <Text style={styles.tasksTitle}>
-              {new Date(selectedDate).toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-              })}
+              {(() => {
+                const [y, m, d] = selectedDate.split('-').map(Number);
+                return new Date(y, m - 1, d).toLocaleDateString('pt-BR', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                });
+              })()}
             </Text>
           </View>
 

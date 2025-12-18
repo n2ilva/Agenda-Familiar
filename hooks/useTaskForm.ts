@@ -48,18 +48,19 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
       if (task) {
         setTitle(task.title);
         setDescription(task.description || '');
-        
+
         // Parse date correctly
+        // Parse date correctly from YYYY-MM-DD as local date
         const [year, month, day] = task.dueDate.split('-').map(Number);
         setDueDate(new Date(year, month - 1, day));
-        
+
         if (task.dueTime) {
           const [hours, minutes] = task.dueTime.split(':').map(Number);
           const time = new Date();
           time.setHours(hours, minutes);
           setDueTime(time);
         }
-        
+
         setCategory(task.category);
         setRecurrence(task.recurrence);
         setSubtasks(task.subtasks || []);
@@ -143,7 +144,7 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
     recurrence,
     subtasks,
     loading,
-    
+
     // Setters
     setTitle,
     setDescription,
@@ -151,7 +152,7 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
     setDueTime,
     setCategory,
     setRecurrence,
-    
+
     // Actions
     handleSave,
     addSubtask,

@@ -1,20 +1,21 @@
+export const parseDateLocal = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 export const formatDate = (date: string | Date): string => {
   let d: Date;
-  
+
   if (typeof date === 'string') {
-    // Handle YYYY-MM-DD format (from database)
-    // Parse as local date to avoid timezone issues
-    const [year, month, day] = date.split('-').map(Number);
-    d = new Date(year, month - 1, day);
+    d = parseDateLocal(date);
   } else {
     d = date;
   }
-  
+
   return d.toLocaleDateString('pt-BR', {
-    year: 'numeric',
-    month: '2-digit',
     day: '2-digit',
-    timeZone: 'America/Sao_Paulo', // Brasilia timezone
+    month: '2-digit',
+    year: 'numeric',
   });
 };
 
