@@ -39,6 +39,7 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
   const [category, setCategory] = useState('');
   const [recurrence, setRecurrence] = useState<RecurrenceType>('none');
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Load existing task if editing
@@ -64,6 +65,7 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
         setCategory(task.category);
         setRecurrence(task.recurrence);
         setSubtasks(task.subtasks || []);
+        setIsPrivate(task.isPrivate || false);
       }
     }
   }, [taskId, getTaskById]);
@@ -100,6 +102,7 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
         completed: false,
         familyId: user?.familyId || '',
         createdBy: user?.uid || '',
+        isPrivate,
       };
 
       if (taskId) {
@@ -143,6 +146,7 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
     category,
     recurrence,
     subtasks,
+    isPrivate,
     loading,
 
     // Setters
@@ -152,6 +156,7 @@ export const useTaskForm = ({ taskId, onSuccess }: UseTaskFormProps) => {
     setDueTime,
     setCategory,
     setRecurrence,
+    setIsPrivate,
 
     // Actions
     handleSave,

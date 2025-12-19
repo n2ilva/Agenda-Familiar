@@ -9,8 +9,11 @@ import SettingsScreen from '@screens/app/SettingsScreen';
 import AddEditScreen from '@screens/app/AddEditScreen';
 import ApprovalsScreen from '@screens/app/ApprovalsScreen';
 import FamilyMembersScreen from '@screens/app/FamilyMembersScreen';
+import ManageCategoriesScreen from '@screens/app/ManageCategoriesScreen';
 import { useThemeColors } from '@hooks/useThemeColors';
 import { useUserStore } from '@store/userStore';
+import { useCategoryStore } from '@store/categoryStore';
+import { useTaskStore } from '@store/taskStore';
 import { familyService } from '@src/firebase';
 import { useNavigation } from '@react-navigation/native';
 
@@ -60,6 +63,11 @@ function SettingsStack() {
         name="Approvals"
         component={ApprovalsScreen}
         options={getHeaderOptions(colors, 'Aprovações')}
+      />
+      <Stack.Screen
+        name="ManageCategories"
+        component={ManageCategoriesScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
@@ -171,6 +179,27 @@ function CalendarStack() {
 
 export default function AppStack() {
   const colors = useThemeColors();
+  const user = useUserStore((state) => state.user);
+  const { initialize: initializeCategories, cleanup: cleanupCategories } = useCategoryStore();
+  const { initialize: initializeTasks } = useTaskStore();
+
+  // Initialize stores when user logs in
+  useEffect(() => {
+    if (user?.familyId) {
+      // Initialize category store
+      initializeCategories(user.familyId);
+
+      // Initialize task store
+      const unsubscribeTasks = initializeTasks();
+
+      return () => {
+        cleanupCategories();
+        if (unsubscribeTasks) {
+          unsubscribeTasks();
+        }
+      };
+    }
+  }, [user?.familyId]);
 
   return (
     <Tab.Navigator

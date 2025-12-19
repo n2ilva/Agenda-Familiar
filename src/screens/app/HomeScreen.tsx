@@ -15,17 +15,21 @@ import { useFocusEffect } from '@react-navigation/native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { useTranslation } from 'react-i18next';
 import { useTaskStore } from '@store/taskStore';
+import { useCategoryStore } from '@store/categoryStore';
+import { useUserStore } from '@store/userStore';
 import TaskItem from '@components/TaskItem';
 import { useThemeColors } from '@hooks/useThemeColors';
 import { useLoadingState } from '@hooks/useLoadingState';
 import { createStyles } from './HomeScreen.styles';
 import type { Task } from '@types';
-import { CATEGORY_OPTIONS, hexToRGBA } from '@utils/taskUtils';
+import { hexToRGBA } from '@utils/taskUtils';
 
 export default function HomeScreen({ navigation }: any) {
   const { t } = useTranslation();
   const { tasks, deleteTask, toggleTask, skipTask, toggleSubtask, getTasks } =
     useTaskStore();
+  const { categories } = useCategoryStore();
+  const user = useUserStore((state) => state.user);
   const colors = useThemeColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { loading, setLoading, refreshing, setRefreshing } = useLoadingState();
@@ -125,6 +129,10 @@ export default function HomeScreen({ navigation }: any) {
 
       // 0. Exclude deleted tasks
       if (t.deletedAt) return false;
+
+      // Note: Private task filtering is done at the store level (taskStore.initialize)
+      // This ensures private tasks never reach the UI layer
+      // Defense in depth: tasks array already filtered by taskPermissions.filterVisibleTasks
 
       // 1. Status Filter
       if (selectedStatus === 'completed') {
@@ -345,13 +353,13 @@ export default function HomeScreen({ navigation }: any) {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={[{ label: t('common.all'), value: null }, ...CATEGORY_OPTIONS]}
-          keyExtractor={(item) => item.value || 'all'}
+          data={[{ id: null, label: t('common.all'), value: null, color: colors.primary, icon: 'layers-outline' }, ...categories]}
+          keyExtractor={(item) => item.id || 'all'}
           contentContainerStyle={styles.filterContent}
           renderItem={({ item }) => {
-            const color = (item as any).color || colors.primary;
-            const icon = (item as any).icon || 'layers-outline';
-            const isSelected = selectedCategory === item.value;
+            const color = item.color || colors.primary;
+            const icon = item.icon || 'layers-outline';
+            const isSelected = selectedCategory === item.id;
 
             return (
               <TouchableOpacity
@@ -362,10 +370,10 @@ export default function HomeScreen({ navigation }: any) {
                     borderColor: color,
                   },
                 ]}
-                onPress={() => setSelectedCategory(item.value)}
+                onPress={() => setSelectedCategory(item.id)}
               >
                 <Ionicons
-                  name={icon}
+                  name={icon as any}
                   size={16}
                   color={isSelected ? '#FFF' : color}
                 />
@@ -378,7 +386,7 @@ export default function HomeScreen({ navigation }: any) {
                     },
                   ]}
                 >
-                  {t(`categories.${item.value}`, { defaultValue: item.label })}
+                  {t(`categories.${item.id}`, { defaultValue: item.label })}
                 </Text>
               </TouchableOpacity>
             );

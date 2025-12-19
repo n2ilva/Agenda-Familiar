@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -18,21 +18,46 @@ interface CreateCategoryModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (name: string, icon: string, color: string) => void;
+  categoryId?: string; // If provided, modal is in edit mode
+  initialName?: string;
+  initialIcon?: string;
+  initialColor?: string;
 }
 
 /**
- * Modal for creating custom categories
+ * Modal for creating/editing custom categories
  * Allows selection of name, icon, and color
  */
 export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   visible,
   onClose,
   onSave,
+  categoryId,
+  initialName = '',
+  initialIcon = 'home-outline',
+  initialColor = '#4CC9F0',
 }) => {
   const colors = useThemeColors();
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('home-outline');
   const [selectedColor, setSelectedColor] = useState('#4CC9F0');
+
+  // Load initial data when editing
+  useEffect(() => {
+    if (visible) {
+      if (categoryId) {
+        // Edit mode: load existing data
+        setName(initialName);
+        setSelectedIcon(initialIcon);
+        setSelectedColor(initialColor);
+      } else {
+        // Create mode: reset to defaults
+        setName('');
+        setSelectedIcon('home-outline');
+        setSelectedColor('#4CC9F0');
+      }
+    }
+  }, [visible, categoryId, initialName, initialIcon, initialColor]);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -41,7 +66,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
     }
 
     onSave(name.trim(), selectedIcon, selectedColor);
-    
+
     // Reset form
     setName('');
     setSelectedIcon('home-outline');
@@ -67,7 +92,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>
-              Nova Categoria
+              {categoryId ? 'Editar Categoria' : 'Nova Categoria'}
             </Text>
             <TouchableOpacity onPress={handleClose}>
               <Ionicons name="close" size={24} color={colors.text} />

@@ -12,6 +12,7 @@ interface CategoryStore {
     initialize: (familyId: string) => void;
     cleanup: () => void;
     addCategory: (name: string, icon: string, color: string, familyId: string) => Promise<void>;
+    updateCategory: (id: string, name: string, icon: string, color: string) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;
     getCategoryById: (id: string) => Category | undefined;
     getAllCategories: () => Category[];
@@ -33,9 +34,23 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
 
         // Subscribe to family categories
         const unsubscribe = categoryService.subscribeToCategories(familyId, (customCategories) => {
+            // Sort categories: default first (except 'other'), custom second, 'other' last
+            const sortedCategories = [...DEFAULT_CATEGORIES, ...customCategories].sort((a, b) => {
+                // 'other' always goes to the end
+                if (a.id === 'other') return 1;
+                if (b.id === 'other') return -1;
+
+                // Default categories before custom
+                if (a.isDefault && !b.isDefault) return -1;
+                if (!a.isDefault && b.isDefault) return 1;
+
+                // Otherwise maintain original order
+                return 0;
+            });
+
             set({
                 customCategories,
-                categories: [...DEFAULT_CATEGORIES, ...customCategories],
+                categories: sortedCategories,
             });
         });
 
@@ -67,6 +82,20 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
             // Real-time listener will update the store automatically
         } catch (error) {
             console.error('Error adding category:', error);
+            throw error;
+        }
+    },
+
+    updateCategory: async (id: string, name: string, icon: string, color: string) => {
+        try {
+            await categoryService.updateCategory(id, {
+                label: name,
+                icon,
+                color,
+            });
+            // Real-time listener will update the store automatically
+        } catch (error) {
+            console.error('Error updating category:', error);
             throw error;
         }
     },

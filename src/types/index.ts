@@ -23,6 +23,7 @@ export interface Task {
   notificationIds?: string[];
   familyId?: string;
   createdBy?: string;
+  isPrivate?: boolean; // Private tasks are only visible to the creator
 }
 
 export interface Category {

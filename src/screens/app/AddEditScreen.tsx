@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,6 +53,7 @@ export default function AddEditScreen({ route, navigation }: any) {
     category,
     recurrence,
     subtasks,
+    isPrivate,
     loading,
     setTitle,
     setDescription,
@@ -59,6 +61,7 @@ export default function AddEditScreen({ route, navigation }: any) {
     setDueTime,
     setCategory,
     setRecurrence,
+    setIsPrivate,
     handleSave,
     addSubtask,
     removeSubtask,
@@ -90,6 +93,7 @@ export default function AddEditScreen({ route, navigation }: any) {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* 1. Title and Description */}
         <TaskBasicInfo
           title={title}
           description={description}
@@ -97,6 +101,14 @@ export default function AddEditScreen({ route, navigation }: any) {
           onDescriptionChange={setDescription}
         />
 
+        {/* 2. Subtasks - Right after description for better UX */}
+        <TaskSubtasks
+          subtasks={subtasks}
+          onAdd={addSubtask}
+          onRemove={removeSubtask}
+        />
+
+        {/* 3. Date and Time */}
         <TaskDateTime
           dueDate={dueDate}
           dueTime={dueTime}
@@ -104,7 +116,7 @@ export default function AddEditScreen({ route, navigation }: any) {
           onTimeChange={setDueTime}
         />
 
-        {/* Category Selection */}
+        {/* 4. Category Selection */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.text }]}>{t('tasks.category')} *</Text>
           <TouchableOpacity
@@ -114,17 +126,17 @@ export default function AddEditScreen({ route, navigation }: any) {
             <View
               style={[
                 styles.categoryDot,
-                { backgroundColor: getCategoryColor(category) },
+                { backgroundColor: getCategoryColor(category, categories) },
               ]}
             />
             <Text style={[styles.categoryText, { color: colors.text }]}>
-              {t(`categories.${category}`, { defaultValue: getCategoryLabel(category) })}
+              {getCategoryLabel(category, categories)}
             </Text>
             <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
-        {/* Recurrence Selection */}
+        {/* 5. Recurrence Selection */}
         <View style={styles.section}>
           <Text style={[styles.label, { color: colors.text }]}>{t('tasks.recurrence')}</Text>
           <TouchableOpacity
@@ -139,11 +151,33 @@ export default function AddEditScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        <TaskSubtasks
-          subtasks={subtasks}
-          onAdd={addSubtask}
-          onRemove={removeSubtask}
-        />
+        {/* 6. Private Task Toggle - Last option, only show if user has a family */}
+        {user?.familyId && (
+          <View style={styles.section}>
+            <View style={styles.privateToggleContainer}>
+              <View style={styles.privateToggleLeft}>
+                <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
+                <View style={styles.privateToggleText}>
+                  <Text style={[styles.label, { color: colors.text, marginBottom: 2 }]}>
+                    Tarefa Privada
+                  </Text>
+                  <Text style={[styles.privateToggleDescription, { color: colors.textSecondary }]}>
+                    Apenas você pode ver esta tarefa
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={isPrivate}
+                onValueChange={setIsPrivate}
+                trackColor={{
+                  false: colors.border,
+                  true: colors.primary,
+                }}
+                thumbColor="#FFF"
+              />
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Modals */}
@@ -250,5 +284,25 @@ const makeStyles = (colors: any) =>
       flex: 1,
       fontSize: fontSize.base,
       marginLeft: spacing.sm,
+    },
+    privateToggleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      padding: spacing.md,
+    },
+    privateToggleLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      gap: spacing.sm,
+    },
+    privateToggleText: {
+      flex: 1,
+    },
+    privateToggleDescription: {
+      fontSize: fontSize.sm,
     },
   });

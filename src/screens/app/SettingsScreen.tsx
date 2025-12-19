@@ -324,6 +324,29 @@ export default function SettingsScreen({ navigation }: any) {
             thumbColor="#FFF"
           />
         </View>
+
+        {/* Manage Categories */}
+        <TouchableOpacity
+          style={styles.settingRow}
+          onPress={() => navigation.navigate('ManageCategories')}
+        >
+          <View style={styles.settingLeft}>
+            <Ionicons
+              name="pricetags-outline"
+              size={24}
+              color={colors.primary}
+            />
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingLabel}>Gerenciar Categorias</Text>
+              <Text style={styles.settingValue}>Criar e deletar categorias personalizadas</Text>
+            </View>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={24}
+            color={colors.textSecondary}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* About Section */}

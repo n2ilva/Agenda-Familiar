@@ -5,6 +5,7 @@ import { useUserStore } from '@store/userStore';
 import { Alert } from 'react-native';
 import { RecurrenceCalculator } from '@domain/services/RecurrenceCalculator';
 import { RECURRENCE_TYPES } from '@constants/task';
+import { filterVisibleTasks, convertTaskToPrivate, convertTaskToPublic } from '@utils/taskPermissions';
 
 interface TaskStore {
   tasks: Task[];
@@ -43,7 +44,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
     const unsubscribe = taskService.subscribeToTasks(user.familyId, (firestoreTasks) => {
       const state = get();
-      const mergedTasks = firestoreTasks.map(t => ({
+      const currentUser = useUserStore.getState().user;
+
+      // Filter tasks to only include visible ones (respects private tasks)
+      const visibleTasks = filterVisibleTasks(firestoreTasks, currentUser);
+
+      const mergedTasks = visibleTasks.map(t => ({
         ...t,
         notificationIds: state.localNotificationMap[t.id] || []
       }));
@@ -92,6 +98,20 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     const currentTask = get().tasks.find(t => t.id === id);
     if (!currentTask || !user) return;
 
+    // Handle privacy change: public -> private
+    // When a public task becomes private, transfer ownership to current user
+    let finalUpdates = { ...updates };
+
+    if (updates.isPrivate === true && !currentTask.isPrivate) {
+      // Converting public task to private: transfer ownership
+      finalUpdates = convertTaskToPrivate(finalUpdates, user.uid);
+      console.log(`[TaskStore] Converting task ${id} to private, transferring ownership to ${user.uid}`);
+    } else if (updates.isPrivate === false && currentTask.isPrivate) {
+      // Converting private task to public: keep current owner
+      finalUpdates = convertTaskToPublic(finalUpdates);
+      console.log(`[TaskStore] Converting task ${id} to public, keeping owner ${currentTask.createdBy}`);
+    }
+
     // RBAC: Check Permissions
     if (user.role === 'dependent') {
       Alert.alert(
@@ -104,18 +124,18 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         requestedBy: user.uid,
         userName: user.displayName || user.email,
         action: 'update',
-        data: updates
+        data: finalUpdates
       });
       return;
     }
 
     try {
-      const needsReschedule = updates.dueDate || updates.dueTime || updates.title || updates.completed !== undefined;
+      const needsReschedule = finalUpdates.dueDate || finalUpdates.dueTime || finalUpdates.title || finalUpdates.completed !== undefined;
 
       if (needsReschedule) {
         await notificationService.cancelTaskNotifications(currentTask.notificationIds);
 
-        const updatedTask = { ...currentTask, ...updates } as Task;
+        const updatedTask = { ...currentTask, ...finalUpdates } as Task;
 
         let newIds: string[] = [];
         if (!updatedTask.completed) {
@@ -130,7 +150,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         }));
       }
 
-      await taskService.updateTask(id, updates);
+      await taskService.updateTask(id, finalUpdates);
     } catch (error) {
       console.error("Failed to update task:", error);
     }

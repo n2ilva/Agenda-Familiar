@@ -16,6 +16,7 @@ import TaskItem from '@components/TaskItem';
 import { useThemeColors } from '@hooks/useThemeColors';
 import { createStyles } from './CalendarScreen.styles';
 import type { Task } from '@types';
+import { getTodayString } from '@utils/dateParser';
 
 export default function CalendarScreen({ navigation }: any) {
   const { t, i18n } = useTranslation();
@@ -26,7 +27,7 @@ export default function CalendarScreen({ navigation }: any) {
 
 
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
+    getTodayString() // Use timezone-safe function
   );
 
   const getMarkedDates = () => {

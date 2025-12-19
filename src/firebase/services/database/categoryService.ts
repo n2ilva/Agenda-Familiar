@@ -41,6 +41,24 @@ export const categoryService = {
     },
 
     /**
+     * Atualiza uma categoria existente
+     */
+    async updateCategory(categoryId: string, updates: Partial<Omit<Category, 'id'>>): Promise<void> {
+        const user = auth.currentUser;
+        if (!user) throw new Error('Usuário não autenticado');
+
+        const updateData: any = {
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (updates.label) updateData.label = updates.label;
+        if (updates.icon) updateData.icon = updates.icon;
+        if (updates.color) updateData.color = updates.color;
+
+        await firestore.collection(CATEGORIES_COLLECTION).doc(categoryId).update(updateData);
+    },
+
+    /**
      * Deleta uma categoria
      */
     async deleteCategory(categoryId: string): Promise<void> {
