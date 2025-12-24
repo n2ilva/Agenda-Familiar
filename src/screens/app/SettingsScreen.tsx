@@ -1,26 +1,26 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Text,
-  Switch,
-  Alert,
-  Image as RNImage,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useUserStore } from '@store/userStore';
-import { authService, userService, familyService } from '@src/firebase';
-import firebase from '@src/firebase/config/firebase.config';
 import PickerModal from '@components/PickerModal';
-import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
-import { spacing, fontSize, fontWeight } from '@styles/spacing';
-import * as WebBrowser from 'expo-web-browser';
+import { authService, familyService, userService } from '@src/firebase';
+import firebase from '@src/firebase/config/firebase.config';
+import { useUserStore } from '@store/userStore';
+import { fontSize, fontWeight, spacing } from '@styles/spacing';
+import type { Family } from '@types';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Clipboard from 'expo-clipboard';
-import type { Family } from '@types';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Alert,
+  Image as RNImage,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -53,9 +53,9 @@ export default function SettingsScreen({ navigation }: any) {
   };
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com',
-    androidClientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // Using Web ID for Expo Go Proxy
-    iosClientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // Using Web ID for Expo Go Proxy
+    clientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // Web Client ID (for Expo Go)
+    androidClientId: '328256268071-mudr2hodd4nio8tbebe70ba2l7i7ok3a.apps.googleusercontent.com', // Android Client ID (for APK/AAB builds)
+    iosClientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // iOS Client ID (create if needed)
   });
 
   useEffect(() => {

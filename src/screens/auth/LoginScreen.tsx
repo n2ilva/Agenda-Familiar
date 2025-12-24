@@ -32,9 +32,9 @@ export default function LoginScreen({ navigation }: any) {
   const colors = useThemeColors();
 
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com',
-    androidClientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // Using Web ID for Expo Go Proxy
-    iosClientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // Using Web ID for Expo Go Proxy
+    clientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // Web Client ID (for Expo Go)
+    androidClientId: '328256268071-mudr2hodd4nio8tbebe70ba2l7i7ok3a.apps.googleusercontent.com', // Android Client ID (for APK/AAB builds)
+    iosClientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // iOS Client ID (create if needed)
   });
 
   useEffect(() => {
