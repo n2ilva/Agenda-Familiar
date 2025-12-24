@@ -1,8 +1,8 @@
-import { auth } from '../../config/firebase.config';
-import firebase from 'firebase/compat/app';
 import { useUserStore } from '@store/userStore';
-import { userService } from '../database/userService';
 import type { User } from '@types';
+import firebase from 'firebase/compat/app';
+import { auth } from '../../config/firebase.config';
+import { userService } from '../database/userService';
 
 /**
  * Serviço de Autenticação
@@ -138,16 +138,23 @@ export const authService = {
      * Obtém dados completos do usuário
      */
     async getUserData(firebaseUser: firebase.User): Promise<User> {
+        const googlePhotoURL = firebaseUser.photoURL || undefined;
+        
         let user: User = {
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             displayName: firebaseUser.displayName || undefined,
-            photoURL: firebaseUser.photoURL || undefined,
+            photoURL: googlePhotoURL,
         };
 
         const profile = await userService.getUserProfile(firebaseUser.uid);
         if (profile) {
-            user = { ...user, ...profile };
+            // Merge but prefer Google photo if profile doesn't have one
+            user = { 
+                ...user, 
+                ...profile,
+                photoURL: profile.photoURL || googlePhotoURL,
+            };
         }
         return user;
     },

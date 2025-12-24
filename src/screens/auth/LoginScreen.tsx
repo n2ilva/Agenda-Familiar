@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Text,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUserStore } from '@store/userStore';
+import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@hooks/useThemeColors';
 import { authService, userService } from '@src/firebase';
 import firebase from '@src/firebase/config/firebase.config';
-import { spacing, fontSize } from '@styles/spacing';
-import { useThemeColors } from '@hooks/useThemeColors';
-import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import { useUserStore } from '@store/userStore';
+import { fontSize, spacing } from '@styles/spacing';
 import { translateAuthError } from '@utils/authErrors';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -31,10 +32,17 @@ export default function LoginScreen({ navigation }: any) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const colors = useThemeColors();
 
+  // Create redirect URI for the app scheme
+  const redirectUri = makeRedirectUri({
+    scheme: 'agendafamiliar',
+    path: 'auth',
+  });
+
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     clientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // Web Client ID (for Expo Go)
     androidClientId: '328256268071-mudr2hodd4nio8tbebe70ba2l7i7ok3a.apps.googleusercontent.com', // Android Client ID (for APK/AAB builds)
     iosClientId: '328256268071-stldq283utksgkddalb8ja0stc84c4gk.apps.googleusercontent.com', // iOS Client ID (create if needed)
+    redirectUri,
   });
 
   useEffect(() => {
@@ -53,18 +61,30 @@ export default function LoginScreen({ navigation }: any) {
 
       if (!firebaseUser) throw new Error("Falha na autenticação Google");
 
-      // Basic user info
+      // Basic user info from Google
+      const googlePhotoURL = firebaseUser.photoURL || undefined;
       let user = {
         uid: firebaseUser.uid,
         email: firebaseUser.email || '',
         displayName: firebaseUser.displayName || undefined,
-        photoURL: firebaseUser.photoURL || undefined,
+        photoURL: googlePhotoURL,
       };
 
       // Fetch or Create Profile
       const profile = await userService.getUserProfile(firebaseUser.uid);
       if (profile) {
-        user = { ...user, ...profile };
+        // Merge profile but prefer Google photo if profile doesn't have one
+        user = {
+          ...user,
+          ...profile,
+          // Keep Google photo if profile photo is missing
+          photoURL: profile.photoURL || googlePhotoURL,
+        };
+
+        // Update profile with Google photo if it was missing
+        if (!profile.photoURL && googlePhotoURL) {
+          await userService.updateUserProfile(firebaseUser.uid, { photoURL: googlePhotoURL });
+        }
       } else {
         // New Google User -> Create Profile
         await userService.createUserProfile(user);
