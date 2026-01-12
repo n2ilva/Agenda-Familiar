@@ -9,7 +9,7 @@ import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import i18n from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import './src/config/i18n';
@@ -105,10 +105,10 @@ export default function App() {
       const { toggleTask, skipTask, tasks } = useTaskStore.getState();
       const currentUser = useUserStore.getState().user;
 
-      console.log('[App] Current State:', { 
-        hasTasks: tasks.length > 0, 
+      console.log('[App] Current State:', {
+        hasTasks: tasks.length > 0,
         hasUser: !!currentUser,
-        userRole: currentUser?.role 
+        userRole: currentUser?.role
       });
 
       let task = tasks.find(t => t.id === taskId);
@@ -185,7 +185,7 @@ export default function App() {
   // Mostra SplashScreen enquanto verifica autenticação
   if (isLoading) {
     return (
-      <GestureHandlerRootView style={styles.root}>
+      <GestureHandlerRootView style={[styles.root, { backgroundColor: colors.background }]}>
         <SafeAreaProvider>
           <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right']}>
             <StatusBar style={preferences.theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
@@ -197,7 +197,7 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <GestureHandlerRootView style={[styles.root, { backgroundColor: colors.background }]}>
       <SafeAreaProvider>
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right']}>
           <StatusBar style={preferences.theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
@@ -214,5 +214,14 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        maxWidth: '75%',
+        width: '100%',
+        alignSelf: 'center',
+        // Optional: Add shadow or border for better aesthetics on web
+        boxShadow: '0px 0px 20px rgba(0,0,0,0.05)',
+      },
+    }),
   },
 });

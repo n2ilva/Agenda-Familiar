@@ -25,6 +25,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Configure Google Sign-In
+console.log('[LoginScreen] Configuring Google Sign-In with:', {
+  webClientId: GOOGLE_WEB_CLIENT_ID,
+  iosClientId: GOOGLE_IOS_CLIENT_ID
+});
+
 configureGoogleSignin({
   webClientId: GOOGLE_WEB_CLIENT_ID,
   iosClientId: GOOGLE_IOS_CLIENT_ID,
@@ -53,17 +58,20 @@ export default function LoginScreen({ navigation }: any) {
         // Fluxo WEB
         console.log('[LoginScreen] Starting Web Google Auth...');
         const provider = new firebase.auth.GoogleAuthProvider();
-        // Forçar seleção de conta para evitar login automático indesejado
-        provider.setCustomParameters({ prompt: 'select_account' });
-        
+        // Forçar seleção de conta e usar o Client ID correto
+        provider.setCustomParameters({
+          prompt: 'select_account',
+          client_id: GOOGLE_WEB_CLIENT_ID
+        });
+
         const result = await firebase.auth().signInWithPopup(provider);
         const firebaseUser = result.user;
         const credential = result.credential as firebase.auth.OAuthCredential;
         const isNewUser = result.additionalUserInfo?.isNewUser;
 
         if (firebaseUser) {
-           console.log('[LoginScreen] Web Google auth success:', firebaseUser.email);
-           await processUserLogin(firebaseUser, credential && credential.accessToken ? credential.accessToken : undefined);
+          console.log('[LoginScreen] Web Google auth success:', firebaseUser.email);
+          await processUserLogin(firebaseUser, credential && credential.accessToken ? credential.accessToken : undefined);
         }
 
       } else {
@@ -105,41 +113,41 @@ export default function LoginScreen({ navigation }: any) {
    * Shared logic for both Web and Mobile
    */
   const processUserLogin = async (firebaseUser: firebase.User, googleAccessToken?: string) => {
-      // Get Google photo URL
-      const googlePhotoURL = firebaseUser.photoURL || undefined;
+    // Get Google photo URL
+    const googlePhotoURL = firebaseUser.photoURL || undefined;
 
-      let user = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        displayName: firebaseUser.displayName || undefined,
-        photoURL: googlePhotoURL,
+    let user = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email || '',
+      displayName: firebaseUser.displayName || undefined,
+      photoURL: googlePhotoURL,
+    };
+
+    // Check if user profile exists in Firestore
+    const existingProfile = await userService.getUserProfile(firebaseUser.uid);
+
+    if (existingProfile) {
+      // Existing user - merge profile data
+      console.log('[LoginScreen] Existing profile found, merging...');
+      user = {
+        ...user,
+        ...existingProfile,
+        // Prefer Google photo if profile doesn't have one
+        photoURL: existingProfile.photoURL || googlePhotoURL,
       };
 
-      // Check if user profile exists in Firestore
-      const existingProfile = await userService.getUserProfile(firebaseUser.uid);
-
-      if (existingProfile) {
-        // Existing user - merge profile data
-        console.log('[LoginScreen] Existing profile found, merging...');
-        user = {
-          ...user,
-          ...existingProfile,
-          // Prefer Google photo if profile doesn't have one
-          photoURL: existingProfile.photoURL || googlePhotoURL,
-        };
-
-        // Update profile with Google photo if it was missing
-        if (!existingProfile.photoURL && googlePhotoURL) {
-          await userService.updateUserProfile(firebaseUser.uid, { photoURL: googlePhotoURL });
-        }
-      } else {
-        // New user - create profile
-        console.log('[LoginScreen] New user, creating profile...');
-        await userService.createUserProfile(user);
+      // Update profile with Google photo if it was missing
+      if (!existingProfile.photoURL && googlePhotoURL) {
+        await userService.updateUserProfile(firebaseUser.uid, { photoURL: googlePhotoURL });
       }
+    } else {
+      // New user - create profile
+      console.log('[LoginScreen] New user, creating profile...');
+      await userService.createUserProfile(user);
+    }
 
-      setUser(user);
-      console.log('[LoginScreen] Login complete!');
+    setUser(user);
+    console.log('[LoginScreen] Login complete!');
   };
 
   /**

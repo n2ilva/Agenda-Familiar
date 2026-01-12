@@ -1,0 +1,43 @@
+{
+  "project_info": {
+    "project_number": "1038445694694",
+    "project_id": "agendafamiliarkotlin",
+    "storage_bucket": "agendafamiliarkotlin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1038445694694:android:3197a45dbc1fa5f24e3527",
+        "android_client_info": {
+          "package_name": "com.natanael.agendafamiliar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1038445694694-c5vcdk6hg63b0gj55amjcr63cc4rp0q0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.natanael.agendafamiliar",
+            "certificate_hash": "83806859ee591a49e85c20e8b93da43e02cf4de2"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAq_KavdQGamhAjMauSFw_3EukAVjU_Waw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1038445694694-2qhusct6udjap3s2hlaalb5i7mf7qeon.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

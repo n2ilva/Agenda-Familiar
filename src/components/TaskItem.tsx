@@ -1,13 +1,13 @@
-import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { Task } from '@types';
 import { useThemeColors } from '@hooks/useThemeColors';
-import { useTranslation } from 'react-i18next';
-import { spacing, fontSize, fontWeight } from '@styles/spacing';
-import { formatDate } from '@utils/dateUtils';
-import { getCategoryColor, getCategoryLabel, getCategoryIcon } from '@utils/taskUtils';
 import { useCategoryStore } from '@store/categoryStore';
+import { fontSize, fontWeight, spacing } from '@styles/spacing';
+import type { Task } from '@types';
+import { formatDate } from '@utils/dateUtils';
+import { getCategoryColor, getCategoryIcon, getCategoryLabel } from '@utils/taskUtils';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface TaskItemProps {
   task: Task;
@@ -161,10 +161,20 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     overflow: 'hidden',
     // Shadow handles implicitly by native driver or ignored
-    elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+      },
+    }),
   },
   container: {},
   contentContainer: {
