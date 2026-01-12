@@ -182,6 +182,13 @@ export default function App() {
     }
   }, [preferences.language]);
 
+  // Update body background color on web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      document.body.style.backgroundColor = colors.background;
+    }
+  }, [colors.background]);
+
   // Mostra SplashScreen enquanto verifica autenticação
   if (isLoading) {
     return (
@@ -219,8 +226,6 @@ const styles = StyleSheet.create({
         maxWidth: '75%',
         width: '100%',
         alignSelf: 'center',
-        // Optional: Add shadow or border for better aesthetics on web
-        boxShadow: '0px 0px 20px rgba(0,0,0,0.05)',
       },
     }),
   },

@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import HomeScreen from '@screens/app/HomeScreen';
-import CalendarScreen from '@screens/app/CalendarScreen';
-import SettingsScreen from '@screens/app/SettingsScreen';
+import { useThemeColors } from '@hooks/useThemeColors';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import AddEditScreen from '@screens/app/AddEditScreen';
 import ApprovalsScreen from '@screens/app/ApprovalsScreen';
+import CalendarScreen from '@screens/app/CalendarScreen';
 import FamilyMembersScreen from '@screens/app/FamilyMembersScreen';
+import HomeScreen from '@screens/app/HomeScreen';
 import ManageCategoriesScreen from '@screens/app/ManageCategoriesScreen';
-import { useThemeColors } from '@hooks/useThemeColors';
-import { useUserStore } from '@store/userStore';
+import SettingsScreen from '@screens/app/SettingsScreen';
+import { familyService } from '@src/firebase';
 import { useCategoryStore } from '@store/categoryStore';
 import { useTaskStore } from '@store/taskStore';
-import { familyService } from '@src/firebase';
-import { useNavigation } from '@react-navigation/native';
+import { useUserStore } from '@store/userStore';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,6 +28,7 @@ const getHeaderOptions = (colors: any, title: string, options?: any) => ({
     backgroundColor: colors.background,
     elevation: 0, // Remove shadow on Android
     shadowOpacity: 0, // Remove shadow on iOS
+    borderBottomWidth: 0, // Remove border line
   },
   headerTitleStyle: {
     color: colors.text,
@@ -98,13 +99,11 @@ function NotificationBadge() {
   return (
     <TouchableOpacity
       onPress={() => navigation.navigate('Approvals' as never)}
-      style={{ position: 'relative' }}
+      style={{ position: 'relative', marginRight: 16 }}
     >
-      <Ionicons name="notifications-outline" size={24} color={colors.text} />
+      <Ionicons name="notifications-outline" size={24} color={colors.warning} />
       {pendingCount > 0 && (
-        <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-          <Text style={styles.badgeText}>{pendingCount > 9 ? '9+' : pendingCount}</Text>
-        </View>
+        <View style={[styles.notificationDot, { backgroundColor: colors.danger }]} />
       )}
     </TouchableOpacity>
   );
@@ -247,5 +246,13 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 10,
     fontWeight: '700',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });

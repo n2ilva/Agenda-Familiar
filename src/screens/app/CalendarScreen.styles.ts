@@ -12,7 +12,7 @@ export const createStyles = (colors: any) =>
         },
         calendarContainer: {
             backgroundColor: colors.surface,
-            borderBottomWidth: 1,
+            borderBottomWidth: 0,
             borderBottomColor: colors.border,
         },
         tasksContainer: {

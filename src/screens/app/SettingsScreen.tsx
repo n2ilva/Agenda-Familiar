@@ -11,17 +11,17 @@ import * as Clipboard from 'expo-clipboard';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Modal,
-  Platform,
-  Image as RNImage,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Modal,
+    Platform,
+    Image as RNImage,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 
@@ -40,19 +40,28 @@ export default function SettingsScreen({ navigation }: any) {
   const [showChangeFamilyModal, setShowChangeFamilyModal] = useState(false);
   const [newFamilyCode, setNewFamilyCode] = useState('');
   const [isChangingFamily, setIsChangingFamily] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
 
-  // Check if Google provider is linked to the current user
+  // Check if Google provider is linked and if user has password
   useEffect(() => {
-    const checkGoogleLinked = () => {
+    const checkProviders = () => {
       const currentUser = firebase.auth().currentUser;
       if (currentUser) {
         const hasGoogle = currentUser.providerData.some(
           (provider) => provider?.providerId === 'google.com'
         );
+        const hasPasswordProvider = currentUser.providerData.some(
+          (provider) => provider?.providerId === 'password'
+        );
         setIsGoogleLinked(hasGoogle);
+        setHasPassword(hasPasswordProvider);
       }
     };
-    checkGoogleLinked();
+    checkProviders();
   }, [user]);
 
   useEffect(() => {
@@ -134,7 +143,19 @@ export default function SettingsScreen({ navigation }: any) {
       // Mark Google as linked
       setIsGoogleLinked(true);
 
-      Alert.alert('Sucesso', 'Conta Google vinculada com sucesso! Agora você pode fazer login com email/senha ou com Google.');
+      // Check if user has password
+      const hasPasswordProvider = currentUser.providerData.some(
+        (provider) => provider?.providerId === 'password'
+      );
+
+      if (hasPasswordProvider) {
+        Alert.alert('Sucesso', 'Conta Google vinculada com sucesso! Agora você pode fazer login com email/senha ou com Google.');
+      } else {
+        Alert.alert(
+          'Sucesso', 
+          'Conta Google vinculada com sucesso!\n\nPara acessar com email e senha, você precisa definir uma senha usando o botão "Definir Senha" abaixo.'
+        );
+      }
 
     } catch (error: any) {
       console.error("Link error:", error);
@@ -254,6 +275,53 @@ export default function SettingsScreen({ navigation }: any) {
     }
   };
 
+  const handleSetPassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    setIsSettingPassword(true);
+    try {
+      await authService.setPassword(newPassword);
+      setShowPasswordModal(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      setHasPassword(true);
+      
+      Alert.alert(
+        'Sucesso',
+        'Senha definida com sucesso! Agora você pode fazer login com email e senha.'
+      );
+    } catch (error: any) {
+      console.error('Error setting password:', error);
+      
+      if (error.code === 'auth/requires-recent-login') {
+        Alert.alert(
+          'Erro',
+          'Por segurança, você precisa fazer login novamente antes de definir uma senha. Faça logout e login novamente.'
+        );
+      } else {
+        Alert.alert(
+          'Erro',
+          error.message || 'Não foi possível definir a senha. Tente novamente.'
+        );
+      }
+    } finally {
+      setIsSettingPassword(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
@@ -283,23 +351,43 @@ export default function SettingsScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Link Google Button - Only show if Google is not already linked */}
-        {!isGoogleLinked && (
-          <TouchableOpacity
-            style={styles.linkButton}
-            onPress={handleGoogleLinkPress}
-            disabled={isGoogleLinked || isLinking}
-          >
-            <Ionicons name="logo-google" size={20} color={colors.primary} />
-            <Text style={styles.linkText}>{isLinking ? t('settings.linking') : t('settings.link_google')}</Text>
-          </TouchableOpacity>
-        )}
-        {isGoogleLinked && (
-          <View style={[styles.linkButton, { backgroundColor: colors.success + '20', borderColor: colors.success }]}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-            <Text style={[styles.linkText, { color: colors.success }]}>Google vinculado</Text>
-          </View>
-        )}
+        {/* Account Linking Buttons Row */}
+        <View style={styles.linkButtonsRow}>
+          {/* Link Google Button - Only show if Google is not already linked */}
+          {!isGoogleLinked && (
+            <TouchableOpacity
+              style={[styles.linkButton, { flex: 1 }]}
+              onPress={handleGoogleLinkPress}
+              disabled={isGoogleLinked || isLinking}
+            >
+              <Ionicons name="logo-google" size={20} color={colors.primary} />
+              <Text style={styles.linkText}>{isLinking ? t('settings.linking') : t('settings.link_google')}</Text>
+            </TouchableOpacity>
+          )}
+          {isGoogleLinked && (
+            <View style={[styles.linkButton, { flex: 1, backgroundColor: colors.success + '20', borderColor: colors.success }]}>
+              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+              <Text style={[styles.linkText, { color: colors.success }]}>Google vinculado</Text>
+            </View>
+          )}
+
+          {/* Set Password Button - Only show if user doesn't have password */}
+          {!hasPassword && (
+            <TouchableOpacity
+              style={[styles.linkButton, { flex: 1 }]}
+              onPress={() => setShowPasswordModal(true)}
+            >
+              <Ionicons name="key-outline" size={20} color={colors.primary} />
+              <Text style={styles.linkText}>Definir Senha</Text>
+            </TouchableOpacity>
+          )}
+          {hasPassword && (
+            <View style={[styles.linkButton, { flex: 1, backgroundColor: colors.success + '20', borderColor: colors.success }]}>
+              <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+              <Text style={[styles.linkText, { color: colors.success }]}>Senha definida</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Admin Section */}
@@ -583,6 +671,67 @@ export default function SettingsScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+
+      {/* Set Password Modal */}
+      <Modal
+        visible={showPasswordModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Definir Senha</Text>
+            <Text style={styles.modalDescription}>
+              Defina uma senha para poder fazer login com email e senha, além do Google.
+            </Text>
+            
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Nova senha (mínimo 6 caracteres)"
+              placeholderTextColor={colors.textSecondary}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Confirmar senha"
+              placeholderTextColor={colors.textSecondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowPasswordModal(false);
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                disabled={isSettingPassword}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+                onPress={handleSetPassword}
+                disabled={isSettingPassword}
+              >
+                <Text style={styles.modalButtonConfirmText}>
+                  {isSettingPassword ? 'Definindo...' : 'Confirmar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -636,18 +785,22 @@ const makeStyles = (colors: any) => StyleSheet.create({
   linkButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
     padding: 8,
-    backgroundColor: colors.surface, // Or distinctive color?
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
-    alignSelf: 'flex-start',
-    gap: 8
+    gap: 8,
+    justifyContent: 'center',
   },
   linkText: {
     color: colors.primary,
     fontWeight: '600'
+  },
+  linkButtonsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: 12,
   },
   settingRow: {
     flexDirection: 'row',

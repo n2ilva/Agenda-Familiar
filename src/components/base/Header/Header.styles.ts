@@ -1,4 +1,4 @@
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import { HeaderAlignment } from './Header.types';
 
 /**
@@ -21,7 +21,7 @@ export const getHeaderStyles = (
     return {
         container: {
             backgroundColor,
-            borderBottomWidth: bordered ? 1 : 0,
+            borderBottomWidth: 0,
             borderBottomColor: borderColor || '#E0E0E0',
         },
         title: {

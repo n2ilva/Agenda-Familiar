@@ -10,16 +10,16 @@ import type { Task } from '@types';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View
 } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 import { createStyles } from './HomeScreen.styles';
@@ -349,7 +349,14 @@ export default function HomeScreen({ navigation }: any) {
     <TabBar
       {...props}
       indicatorStyle={{ backgroundColor: colors.primary, height: 3 }}
-      style={{ backgroundColor: colors.background, elevation: 0, shadowOpacity: 0 }}
+      style={{ 
+        backgroundColor: colors.background, 
+        elevation: 0, 
+        shadowOpacity: 0, 
+        borderBottomWidth: 0,
+        borderWidth: 0,
+        borderTopWidth: 0,
+      }}
       labelStyle={{ fontWeight: '600', textTransform: 'none', fontSize: 16 }}
       activeColor={colors.primary}
       inactiveColor={colors.textSecondary}

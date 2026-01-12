@@ -1,5 +1,5 @@
+import { fontSize, fontWeight, spacing } from '@styles/spacing';
 import { StyleSheet } from 'react-native';
-import { spacing, fontSize, fontWeight } from '@styles/spacing';
 
 export const createStyles = (colors: any) =>
     StyleSheet.create({
@@ -10,7 +10,7 @@ export const createStyles = (colors: any) =>
         section: {
             paddingHorizontal: spacing.lg,
             paddingVertical: spacing.lg,
-            borderBottomWidth: 1,
+            borderBottomWidth: 0,
             borderBottomColor: colors.border,
         },
         sectionTitle: {

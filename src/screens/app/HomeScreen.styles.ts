@@ -15,13 +15,13 @@ export const createStyles = (colors: any) =>
         filterContainer: {
             marginTop: spacing.lg,
             paddingBottom: spacing.sm,
+            paddingHorizontal: spacing.lg,
             ...(Platform.OS === 'web' ? { 
                 maxWidth: '100%',
                 overflow: 'hidden' as const,
             } : {}),
         },
         filterContent: {
-            paddingHorizontal: spacing.lg,
             gap: spacing.sm,
             flexDirection: 'row',
         },
@@ -43,7 +43,7 @@ export const createStyles = (colors: any) =>
             paddingHorizontal: spacing.lg,
             paddingBottom: spacing.md,
             justifyContent: 'space-around',
-            borderBottomWidth: 1,
+            borderBottomWidth: 0,
             borderBottomColor: colors.border,
         },
         dateFilterTab: {

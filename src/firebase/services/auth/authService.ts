@@ -166,6 +166,25 @@ export const authService = {
         }
         return user;
     },
+
+    /**
+     * Define ou atualiza a senha do usuário
+     * Permite que usuários que fizeram login com Google possam adicionar uma senha
+     */
+    async setPassword(newPassword: string): Promise<void> {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+            throw new Error('Nenhum usuário autenticado');
+        }
+
+        try {
+            await currentUser.updatePassword(newPassword);
+            console.log('[AuthService] Password updated successfully');
+        } catch (error: any) {
+            console.error('[AuthService] Error updating password:', error);
+            throw error;
+        }
+    },
 };
 
 export default authService;
