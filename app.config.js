@@ -10,7 +10,7 @@ export default {
         icon: 'assets/adaptive-icon.png',
         scheme: 'agendafamiliar',
         userInterfaceStyle: 'automatic',
-        newArchEnabled: true,
+        newArchEnabled: false,
         ios: {
             supportsTablet: true,
             bundleIdentifier: 'com.natanael.agendafamiliar',
@@ -21,7 +21,7 @@ export default {
                 backgroundColor: '#E6F4FE',
                 foregroundImage: 'assets/adaptive-icon.png',
             },
-            edgeToEdgeEnabled: true,
+            edgeToEdgeEnabled: false,
             predictiveBackGestureEnabled: false,
             permissions: [
                 'android.permission.SCHEDULE_EXACT_ALARM',
