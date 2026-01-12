@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import {
-  GOOGLE_ANDROID_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
   GOOGLE_WEB_CLIENT_ID
 } from '@src/config/googleAuth';
@@ -10,10 +10,7 @@ import firebase from '@src/firebase/config/firebase.config';
 import { useUserStore } from '@store/userStore';
 import { fontSize, spacing } from '@styles/spacing';
 import { translateAuthError } from '@utils/authErrors';
-import { makeRedirectUri } from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -27,7 +24,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-WebBrowser.maybeCompleteAuthSession();
+// Configure Google Sign-In
+GoogleSignin.configure({
+  webClientId: GOOGLE_WEB_CLIENT_ID,
+  iosClientId: GOOGLE_IOS_CLIENT_ID,
+  offlineAccess: true,
+});
+
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -38,44 +41,48 @@ export default function LoginScreen({ navigation }: any) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const colors = useThemeColors();
 
-  // Create proper redirect URI based on platform
-  const redirectUri = makeRedirectUri({
-    scheme: 'agendafamiliar',
-    path: 'auth',
-    // For Expo Go, use the proxy
-    preferLocalhost: false,
-  });
+  /**
+   * Main Google Login Handler
+   */
+  const handleGoogleLoginPress = async () => {
+    setIsGoogleLoading(true);
 
-  console.log('[LoginScreen] Platform:', Platform.OS);
-  console.log('[LoginScreen] Redirect URI:', redirectUri);
+    try {
+      // Check for Play Services on Android
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices();
+      }
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_WEB_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    redirectUri,
-  });
+      // Start Google Sign-In flow
+      const { data } = await GoogleSignin.signIn();
 
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      console.log('[LoginScreen] Google auth success, processing token...');
-      handleGoogleLogin(id_token);
-    } else if (response?.type === 'error') {
-      console.error('[LoginScreen] Google auth error:', response.error);
-      Alert.alert('Erro', `Falha na autenticação Google: ${response.error?.message || 'Erro desconhecido'}`);
+      if (data?.idToken) {
+        console.log('[LoginScreen] Native Google auth success, processing token...');
+        await handleFirebaseGoogleLogin(data.idToken);
+      } else {
+        throw new Error('ID Token não recebido do Google');
+      }
+
+    } catch (error: any) {
+      console.log('[LoginScreen] Google Sign-In Error:', error.code, error.message);
+
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('[LoginScreen] Sign-In Cancelado');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('[LoginScreen] Sign-In já em progresso');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Erro', 'Google Play Services não disponível');
+      } else {
+        Alert.alert('Erro no Google', `Falha ao iniciar: ${error.message}`);
+      }
       setIsGoogleLoading(false);
     }
-  }, [response]);
+  };
 
   /**
-   * Handle Google Login
-   * This function handles both:
-   * 1. New users - creates a new account with Google
-   * 2. Existing users with email/password - links Google to their account
-   * 3. Existing users with Google - just logs them in
+   * Firebase Logic for Google Login
    */
-  const handleGoogleLogin = async (idToken: string) => {
+  const handleFirebaseGoogleLogin = async (idToken: string) => {
     setIsGoogleLoading(true);
     try {
       const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
@@ -227,8 +234,8 @@ export default function LoginScreen({ navigation }: any) {
 
             <TouchableOpacity
               style={[styles.googleButton, { borderColor: colors.border, backgroundColor: colors.background }, (loading || isGoogleLoading) && styles.buttonDisabled]}
-              onPress={() => promptAsync()}
-              disabled={!request || loading || isGoogleLoading}
+              onPress={handleGoogleLoginPress}
+              disabled={loading || isGoogleLoading}
             >
               {isGoogleLoading ? (
                 <ActivityIndicator color={colors.text} />

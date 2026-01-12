@@ -1,37 +1,30 @@
 import PickerModal from '@components/PickerModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
-import {
-    GOOGLE_ANDROID_CLIENT_ID,
-    GOOGLE_IOS_CLIENT_ID,
-    GOOGLE_WEB_CLIENT_ID
-} from '@src/config/googleAuth';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { authService, familyService, userService } from '@src/firebase';
 import firebase from '@src/firebase/config/firebase.config';
 import { useUserStore } from '@store/userStore';
 import { fontSize, fontWeight, spacing } from '@styles/spacing';
 import type { Family } from '@types';
-import { makeRedirectUri } from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
 import * as Clipboard from 'expo-clipboard';
-import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
-    Modal,
-    Platform,
-    Image as RNImage,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Modal,
+  Platform,
+  Image as RNImage,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
-WebBrowser.maybeCompleteAuthSession();
+
 
 export default function SettingsScreen({ navigation }: any) {
   const { t } = useTranslation();
@@ -79,26 +72,43 @@ export default function SettingsScreen({ navigation }: any) {
     }
   };
 
-  // Create proper redirect URI
-  const redirectUri = makeRedirectUri({
-    scheme: 'agendafamiliar',
-    path: 'auth',
-    preferLocalhost: false,
-  });
+  /**
+   * Main Google Link Handler
+   */
+  const handleGoogleLinkPress = async () => {
+    setIsLinking(true);
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_WEB_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    redirectUri,
-  });
+    try {
+      // Check for Play Services on Android
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices();
+      }
 
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      handleGoogleLink(id_token);
+      // Start Google Sign-In flow
+      const { data } = await GoogleSignin.signIn();
+
+      if (data?.idToken) {
+        console.log('[SettingsScreen] Native Google auth success, linking...');
+        await handleGoogleLink(data.idToken);
+      } else {
+        throw new Error('ID Token não recebido do Google');
+      }
+
+    } catch (error: any) {
+      console.log('[SettingsScreen] Google Link Error:', error.code, error.message);
+
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('[SettingsScreen] Link Cancelado');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('[SettingsScreen] Operação já em progresso');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Erro', 'Google Play Services não disponível');
+      } else {
+        Alert.alert('Erro no Google', `Falha ao iniciar: ${error.message}`);
+      }
+      setIsLinking(false);
     }
-  }, [response]);
+  };
 
   const handleGoogleLink = async (idToken: string) => {
     if (!user) return;
@@ -277,8 +287,8 @@ export default function SettingsScreen({ navigation }: any) {
         {!isGoogleLinked && (
           <TouchableOpacity
             style={styles.linkButton}
-            onPress={() => promptAsync()}
-            disabled={!request || isLinking}
+            onPress={handleGoogleLinkPress}
+            disabled={isGoogleLinked || isLinking}
           >
             <Ionicons name="logo-google" size={20} color={colors.primary} />
             <Text style={styles.linkText}>{isLinking ? t('settings.linking') : t('settings.link_google')}</Text>
