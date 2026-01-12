@@ -14,12 +14,16 @@
       },
       "oauth_client": [
         {
-          "client_id": "1038445694694-c5vcdk6hg63b0gj55amjcr63cc4rp0q0.apps.googleusercontent.com",
+          "client_id": "1038445694694-4ce6uf88npcvsi6p3ih1etj6ldoegn0o.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.natanael.agendafamiliar",
             "certificate_hash": "83806859ee591a49e85c20e8b93da43e02cf4de2"
           }
+        },
+        {
+          "client_id": "1038445694694-urk08bl8efnnue8ujj75ofn0tfedbu8u.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
@@ -31,7 +35,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1038445694694-2qhusct6udjap3s2hlaalb5i7mf7qeon.apps.googleusercontent.com",
+              "client_id": "1038445694694-kcl7tc5d0d6pev1773k3d06i04413pnr.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
