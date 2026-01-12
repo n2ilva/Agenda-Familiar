@@ -1,7 +1,7 @@
+import type { ApprovalRequest, Family, User } from '@types';
 import firebase from 'firebase/compat/app';
 import { firestore } from '../../config/firebase.config';
 import { userService } from './userService';
-import type { Family, User, ApprovalRequest } from '@types';
 
 const FAMILIES_COLLECTION = 'families';
 const APPROVALS_COLLECTION = 'approvals';
@@ -197,6 +197,21 @@ export const familyService = {
             await userService.updateUserProfile(uid, { role: newRole });
         } catch (error) {
             console.error('[FamilyService] Error updating member role:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Remove um membro da família (limpa o familyId do usuário)
+     */
+    async removeMemberFromFamily(uid: string): Promise<void> {
+        try {
+            await firestore.collection(USERS_COLLECTION).doc(uid).update({
+                familyId: null,
+                role: null,
+            });
+        } catch (error) {
+            console.error('[FamilyService] Error removing member from family:', error);
             throw error;
         }
     }

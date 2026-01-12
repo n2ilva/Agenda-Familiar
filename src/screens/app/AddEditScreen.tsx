@@ -17,14 +17,14 @@ import { getCategoryColor, getCategoryLabel } from '@utils/taskUtils';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -39,7 +39,7 @@ const getRecurrenceOptions = (t: any) => [
 
 export default function AddEditScreen({ route, navigation }: any) {
   const { t } = useTranslation();
-  const { taskId } = route.params || { taskId: null };
+  const { taskId, initialDate } = route.params || { taskId: null, initialDate: null };
   const colors = useThemeColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -78,6 +78,7 @@ export default function AddEditScreen({ route, navigation }: any) {
     removeSubtask,
   } = useTaskForm({
     taskId,
+    initialDate,
     onSuccess: () => navigation.goBack(),
   });
 

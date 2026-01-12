@@ -1,29 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    TouchableOpacity,
-    Alert,
-    ActivityIndicator,
-    Image
-} from 'react-native';
+import PickerModal from '@components/PickerModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
-import { useUserStore } from '@store/userStore';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { familyService } from '@src/firebase';
-import { spacing, fontSize, fontWeight } from '@styles/spacing';
+import { useUserStore } from '@store/userStore';
+import { fontSize, fontWeight, spacing } from '@styles/spacing';
 import type { User, UserRole } from '@types';
-import PickerModal from '@components/PickerModal';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Image,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
 
 export default function FamilyMembersScreen() {
     const colors = useThemeColors();
-    const { user } = useUserStore();
+    const navigation = useNavigation();
+    const { user, setUser } = useUserStore();
     const [members, setMembers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMember, setSelectedMember] = useState<User | null>(null);
     const [showRolePicker, setShowRolePicker] = useState(false);
+    const [isRemoving, setIsRemoving] = useState(false);
 
     useEffect(() => {
         fetchMembers();
@@ -89,37 +93,135 @@ export default function FamilyMembersScreen() {
         }
     };
 
+    const handleRemoveMember = async (member: User) => {
+        // Prevent removing yourself if you're the only admin
+        const adminCount = members.filter(m => m.role === 'admin').length;
+        if (member.uid === user?.uid && member.role === 'admin' && adminCount === 1) {
+            if (Platform.OS === 'web') {
+                window.alert('Você é o único administrador da família. Promova outro membro a administrador antes de sair.');
+            } else {
+                Alert.alert(
+                    'Ação não permitida',
+                    'Você é o único administrador da família. Promova outro membro a administrador antes de sair.'
+                );
+            }
+            return;
+        }
+
+        const memberName = member.displayName || member.email?.split('@')[0] || 'este membro';
+        const isSelf = member.uid === user?.uid;
+
+        const confirmMessage = isSelf 
+            ? 'Tem certeza que deseja sair desta família? Você precisará criar ou entrar em outra família.'
+            : `Tem certeza que deseja remover ${memberName} da família?`;
+
+        const executeRemoval = async () => {
+            setIsRemoving(true);
+            try {
+                await familyService.removeMemberFromFamily(member.uid);
+
+                if (isSelf) {
+                    // Update local user state
+                    setUser({ ...user!, familyId: undefined, role: undefined });
+                    
+                    // Navigate to FamilySetup screen
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'FamilySetup' as never }],
+                        })
+                    );
+                } else {
+                    // Remove from local list
+                    setMembers(prev => prev.filter(m => m.uid !== member.uid));
+                    if (Platform.OS === 'web') {
+                        window.alert(`${memberName} foi removido da família.`);
+                    } else {
+                        Alert.alert('Sucesso', `${memberName} foi removido da família.`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error removing member:', error);
+                if (Platform.OS === 'web') {
+                    window.alert('Não foi possível remover o membro.');
+                } else {
+                    Alert.alert('Erro', 'Não foi possível remover o membro.');
+                }
+            } finally {
+                setIsRemoving(false);
+            }
+        };
+
+        // Web uses window.confirm, mobile uses Alert.alert
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm(confirmMessage);
+            if (confirmed) {
+                await executeRemoval();
+            }
+        } else {
+            Alert.alert(
+                isSelf ? 'Sair da Família' : 'Remover Membro',
+                confirmMessage,
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                        text: isSelf ? 'Sair' : 'Remover',
+                        style: 'destructive',
+                        onPress: executeRemoval
+                    }
+                ]
+            );
+        }
+    };
+
     const renderItem = ({ item }: { item: User }) => (
-        <TouchableOpacity
-            style={[styles.memberCard, { backgroundColor: colors.surface }]}
-            onPress={() => handleMemberPress(item)}
-            disabled={user?.role !== 'admin'}
-        >
-            <View style={styles.avatarContainer}>
-                {item.photoURL ? (
-                    <Image source={{ uri: item.photoURL }} style={styles.avatar} />
-                ) : (
-                    <Ionicons name="person-circle" size={40} color={colors.textSecondary} />
-                )}
-            </View>
+        <View style={[styles.memberCard, { backgroundColor: colors.surface }]}>
+            <TouchableOpacity
+                style={styles.memberContent}
+                onPress={() => handleMemberPress(item)}
+                disabled={user?.role !== 'admin'}
+            >
+                <View style={styles.avatarContainer}>
+                    {item.photoURL ? (
+                        <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+                    ) : (
+                        <Ionicons name="person-circle" size={40} color={colors.textSecondary} />
+                    )}
+                </View>
 
-            <View style={styles.infoContainer}>
-                <Text style={[styles.name, { color: colors.text }]}>
-                    {item.displayName || item.email?.split('@')[0] || 'Usuário'}
-                    {item.uid === user?.uid && ' (Você)'}
-                </Text>
-                <Text style={[styles.email, { color: colors.textSecondary }]}>{item.email}</Text>
-            </View>
+                <View style={styles.infoContainer}>
+                    <Text style={[styles.name, { color: colors.text }]}>
+                        {item.displayName || item.email?.split('@')[0] || 'Usuário'}
+                        {item.uid === user?.uid && ' (Você)'}
+                    </Text>
+                    <Text style={[styles.email, { color: colors.textSecondary }]}>{item.email}</Text>
+                </View>
 
-            <View style={styles.roleContainer}>
-                <Text style={[styles.role, { color: colors.primary }]}>
-                    {getRoleLabel(item.role)}
-                </Text>
-                {user?.role === 'admin' && (
-                    <Ionicons name="pencil-outline" size={16} color={colors.textSecondary} style={{ marginLeft: 4 }} />
-                )}
-            </View>
-        </TouchableOpacity>
+                <View style={styles.roleContainer}>
+                    <Text style={[styles.role, { color: colors.primary }]}>
+                        {getRoleLabel(item.role)}
+                    </Text>
+                    {user?.role === 'admin' && (
+                        <Ionicons name="pencil-outline" size={16} color={colors.textSecondary} style={{ marginLeft: 4 }} />
+                    )}
+                </View>
+            </TouchableOpacity>
+
+            {/* Delete button - visible for admins to remove others, or for any user to leave */}
+            {(user?.role === 'admin' || item.uid === user?.uid) && (
+                <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleRemoveMember(item)}
+                    disabled={isRemoving}
+                >
+                    <Ionicons 
+                        name={item.uid === user?.uid ? "exit-outline" : "trash-outline"} 
+                        size={20} 
+                        color={colors.danger} 
+                    />
+                </TouchableOpacity>
+            )}
+        </View>
     );
 
     return (
@@ -191,5 +293,14 @@ const styles = StyleSheet.create({
     role: {
         fontSize: fontSize.sm,
         fontWeight: fontWeight.medium,
-    }
+    },
+    memberContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    deleteButton: {
+        padding: spacing.sm,
+        marginLeft: spacing.sm,
+    },
 });

@@ -2,8 +2,8 @@ import { RecurrenceCalculator } from '@domain/services/RecurrenceCalculator';
 import { familyService, notificationService, taskService } from '@src/firebase';
 import { useUserStore } from '@store/userStore';
 import type { Task } from '@types';
+import { showAlert } from '@utils/alertUtils';
 import { convertTaskToPrivate, convertTaskToPublic, filterVisibleTasks } from '@utils/taskPermissions';
-import { Alert } from 'react-native';
 import { create } from 'zustand';
 
 interface TaskStore {
@@ -151,7 +151,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
     // RBAC: Check Permissions
     if (user.role === 'dependent') {
-      Alert.alert(
+      showAlert(
         'Aprovação Necessária',
         'Como dependente, sua alteração precisa ser aprovada pelo administrador.'
       );
@@ -207,7 +207,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
     // RBAC
     if (user.role === 'dependent') {
-      Alert.alert(
+      showAlert(
         'Aprovação Necessária',
         'Solicitação de exclusão enviada ao administrador.'
       );
@@ -272,7 +272,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       if (user.role === 'dependent') {
         // Allow toggle? User said "conclude... needs approval".
         // So yes, verify role.
-        Alert.alert(
+        showAlert(
           'Aprovação Necessária',
           'Solicitação de conclusão/alteração enviada ao administrador.'
         );
@@ -394,7 +394,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
     } catch (error) {
       console.error('Error in toggleTask:', error);
-      Alert.alert('Erro', 'Não foi possível atualizar a tarefa');
+      showAlert('Erro', 'Não foi possível atualizar a tarefa');
 
       // Release lock on error
       set(s => {
@@ -422,7 +422,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     );
 
     if (user.role === 'dependent') {
-      Alert.alert('Aprovação Necessária', 'Alteração de subtarefa enviada para aprovação.');
+      showAlert('Aprovação Necessária', 'Alteração de subtarefa enviada para aprovação.');
       familyService.createApprovalRequest({
         familyId: user.familyId!,
         taskId: taskId,
@@ -499,12 +499,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     // CRITICAL: Don't reschedule deleted tasks
     if (task.deletedAt) {
       console.log('Task is deleted, cannot skip');
-      Alert.alert('Erro', 'Não é possível pular uma tarefa excluída');
+      showAlert('Erro', 'Não é possível pular uma tarefa excluída');
       return;
     }
 
     if (user?.role === 'dependent') {
-      Alert.alert('Aprovação Necessária', 'Pular tarefa requer aprovação.');
+      showAlert('Aprovação Necessária', 'Pular tarefa requer aprovação.');
 
       // Use RecurrenceCalculator
       const formattedDate = RecurrenceCalculator.calculateNextDate(task.dueDate, task.recurrence, task.weekDays);

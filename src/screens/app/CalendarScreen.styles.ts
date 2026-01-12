@@ -1,5 +1,5 @@
+import { fontSize, spacing } from '@styles/spacing';
 import { StyleSheet } from 'react-native';
-import { spacing, fontSize } from '@styles/spacing';
 
 export const createStyles = (colors: any) =>
     StyleSheet.create({
@@ -34,6 +34,10 @@ export const createStyles = (colors: any) =>
             fontWeight: '600',
             color: colors.text,
             textTransform: 'capitalize',
+            flex: 1,
+        },
+        addButton: {
+            padding: spacing.xs,
         },
         sectionTitle: {
             fontSize: fontSize.lg,

@@ -2,9 +2,9 @@ import PickerModal from '@components/PickerModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
 import {
-  GOOGLE_ANDROID_CLIENT_ID,
-  GOOGLE_IOS_CLIENT_ID,
-  GOOGLE_WEB_CLIENT_ID
+    GOOGLE_ANDROID_CLIENT_ID,
+    GOOGLE_IOS_CLIENT_ID,
+    GOOGLE_WEB_CLIENT_ID
 } from '@src/config/googleAuth';
 import { authService, familyService, userService } from '@src/firebase';
 import firebase from '@src/firebase/config/firebase.config';
@@ -18,15 +18,17 @@ import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
-  Platform,
-  Image as RNImage,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Modal,
+    Platform,
+    Image as RNImage,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -42,6 +44,9 @@ export default function SettingsScreen({ navigation }: any) {
   const [isLinking, setIsLinking] = useState(false);
   const [family, setFamily] = useState<Family | null>(null);
   const [isGoogleLinked, setIsGoogleLinked] = useState(false);
+  const [showChangeFamilyModal, setShowChangeFamilyModal] = useState(false);
+  const [newFamilyCode, setNewFamilyCode] = useState('');
+  const [isChangingFamily, setIsChangingFamily] = useState(false);
 
   // Check if Google provider is linked to the current user
   useEffect(() => {
@@ -198,6 +203,47 @@ export default function SettingsScreen({ navigation }: any) {
     return preferences?.language === 'pt-BR' ? 'Português (Brasil)' : 'English';
   };
 
+  const handleChangeFamily = async () => {
+    if (!newFamilyCode.trim()) {
+      Alert.alert('Erro', 'Por favor, insira o código da família.');
+      return;
+    }
+
+    if (!user) {
+      Alert.alert('Erro', 'Usuário não encontrado.');
+      return;
+    }
+
+    setIsChangingFamily(true);
+    try {
+      const newFamily = await familyService.joinFamily(newFamilyCode.trim(), user);
+      
+      // Update local user state with new family
+      setUser({
+        ...user,
+        familyId: newFamily.id,
+        role: 'dependent', // User becomes dependent when joining a new family
+      });
+      
+      setFamily(newFamily);
+      setShowChangeFamilyModal(false);
+      setNewFamilyCode('');
+      
+      Alert.alert(
+        'Sucesso', 
+        `Você entrou na família "${newFamily.name}" com sucesso!`
+      );
+    } catch (error: any) {
+      console.error('Error changing family:', error);
+      Alert.alert(
+        'Erro', 
+        error.message || 'Não foi possível trocar de família. Verifique o código e tente novamente.'
+      );
+    } finally {
+      setIsChangingFamily(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
@@ -301,6 +347,29 @@ export default function SettingsScreen({ navigation }: any) {
               <View style={styles.settingTextContainer}>
                 <Text style={styles.settingLabel}>{t('settings.manage_members')}</Text>
                 <Text style={styles.settingValue}>{t('settings.view_list', 'Ver lista e permissões')}</Text>
+              </View>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          {/* Change Family */}
+          <TouchableOpacity
+            style={styles.settingRow}
+            onPress={() => setShowChangeFamilyModal(true)}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons
+                name="swap-horizontal-outline"
+                size={24}
+                color={colors.primary}
+              />
+              <View style={styles.settingTextContainer}>
+                <Text style={styles.settingLabel}>Trocar de Família</Text>
+                <Text style={styles.settingValue}>Entrar em outra família usando um código</Text>
               </View>
             </View>
             <Ionicons
@@ -454,6 +523,56 @@ export default function SettingsScreen({ navigation }: any) {
         }
         onClose={() => setShowLanguagePicker(false)}
       />
+
+      {/* Change Family Modal */}
+      <Modal
+        visible={showChangeFamilyModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowChangeFamilyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Trocar de Família</Text>
+            <Text style={styles.modalDescription}>
+              Insira o código da família que deseja entrar. Você irá sair da família atual e entrar na nova família como membro.
+            </Text>
+            
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Digite o código da família"
+              placeholderTextColor={colors.textSecondary}
+              value={newFamilyCode}
+              onChangeText={setNewFamilyCode}
+              autoCapitalize="characters"
+              maxLength={6}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowChangeFamilyModal(false);
+                  setNewFamilyCode('');
+                }}
+                disabled={isChangingFamily}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+                onPress={handleChangeFamily}
+                disabled={isChangingFamily}
+              >
+                <Text style={styles.modalButtonConfirmText}>
+                  {isChangingFamily ? 'Entrando...' : 'Confirmar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -560,6 +679,72 @@ const makeStyles = (colors: any) => StyleSheet.create({
   logoutText: {
     color: '#FFF',
     fontSize: fontSize.base,
+    fontWeight: fontWeight.semibold,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: spacing.xl,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.text,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalInput: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: spacing.md,
+    fontSize: fontSize.lg,
+    color: colors.text,
+    textAlign: 'center',
+    letterSpacing: 4,
+    marginBottom: spacing.lg,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalButtonConfirm: {
+    backgroundColor: colors.primary,
+  },
+  modalButtonCancelText: {
+    color: colors.text,
+    fontWeight: fontWeight.semibold,
+  },
+  modalButtonConfirmText: {
+    color: '#FFF',
     fontWeight: fontWeight.semibold,
   },
 });

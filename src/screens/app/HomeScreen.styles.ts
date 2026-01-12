@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { spacing, fontSize } from '@styles/spacing';
+import { fontSize, spacing } from '@styles/spacing';
+import { Platform, StyleSheet } from 'react-native';
 
 export const createStyles = (colors: any) =>
     StyleSheet.create({
@@ -13,12 +13,17 @@ export const createStyles = (colors: any) =>
             gap: spacing.md,
         },
         filterContainer: {
-            marginTop: spacing.md,
+            marginTop: spacing.lg,
             paddingBottom: spacing.sm,
+            ...(Platform.OS === 'web' ? { 
+                maxWidth: '100%',
+                overflow: 'hidden' as const,
+            } : {}),
         },
         filterContent: {
             paddingHorizontal: spacing.lg,
             gap: spacing.sm,
+            flexDirection: 'row',
         },
         filterChip: {
             flexDirection: 'row',

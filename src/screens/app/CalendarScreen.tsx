@@ -1,22 +1,22 @@
-import React, { useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar } from 'react-native-calendars';
+import TaskItem from '@components/TaskItem';
 import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
+import { useThemeColors } from '@hooks/useThemeColors';
 import { useTaskStore } from '@store/taskStore';
 import { useUserStore } from '@store/userStore';
-import TaskItem from '@components/TaskItem';
-import { useThemeColors } from '@hooks/useThemeColors';
-import { createStyles } from './CalendarScreen.styles';
 import type { Task } from '@types';
 import { getTodayString } from '@utils/dateParser';
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    FlatList,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { Calendar } from 'react-native-calendars';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { createStyles } from './CalendarScreen.styles';
 
 export default function CalendarScreen({ navigation }: any) {
   const { t, i18n } = useTranslation();
@@ -120,6 +120,12 @@ export default function CalendarScreen({ navigation }: any) {
                 });
               })()}
             </Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('AddEdit', { initialDate: selectedDate })}
+            >
+              <Ionicons name="add-circle" size={28} color={colors.primary} />
+            </TouchableOpacity>
           </View>
 
           {selectedDateTasks.length === 0 ? (

@@ -7,18 +7,19 @@ import { useCategoryStore } from '@store/categoryStore';
 import { useTaskStore } from '@store/taskStore';
 import { useUserStore } from '@store/userStore';
 import type { Task } from '@types';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Platform,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    useWindowDimensions,
+    View
 } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 import { createStyles } from './HomeScreen.styles';
@@ -45,6 +46,60 @@ export default function HomeScreen({ navigation }: any) {
     { key: 'upcoming', title: t('tasks.upcoming') },
   ]);
 
+  // Drag to scroll for web
+  const scrollRef = useRef<ScrollView>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  // Setup drag-to-scroll for web
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    
+    const scrollElement = (scrollRef.current as any)?._nativeRef?.current;
+    if (!scrollElement) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDragging.current = true;
+      startX.current = e.pageX - scrollElement.offsetLeft;
+      scrollLeft.current = scrollElement.scrollLeft;
+      scrollElement.style.cursor = 'grabbing';
+      scrollElement.style.userSelect = 'none';
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      scrollElement.style.cursor = 'grab';
+      scrollElement.style.userSelect = 'auto';
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+      e.preventDefault();
+      const x = e.pageX - scrollElement.offsetLeft;
+      const walk = (x - startX.current) * 1.5;
+      scrollElement.scrollLeft = scrollLeft.current - walk;
+    };
+
+    const handleMouseLeave = () => {
+      isDragging.current = false;
+      scrollElement.style.cursor = 'grab';
+    };
+
+    scrollElement.style.cursor = 'grab';
+    scrollElement.addEventListener('mousedown', handleMouseDown);
+    scrollElement.addEventListener('mouseup', handleMouseUp);
+    scrollElement.addEventListener('mousemove', handleMouseMove);
+    scrollElement.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      scrollElement.removeEventListener('mousedown', handleMouseDown);
+      scrollElement.removeEventListener('mouseup', handleMouseUp);
+      scrollElement.removeEventListener('mousemove', handleMouseMove);
+      scrollElement.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [categories]); // Re-run when categories change to ensure ref is ready
+
   useFocusEffect(
     useCallback(() => {
       loadTasks();
@@ -56,7 +111,11 @@ export default function HomeScreen({ navigation }: any) {
     try {
       getTasks();
     } catch (error) {
-      Alert.alert(t('common.error'), t('tasks.load_error', 'Não foi possível carregar as tarefas'));
+      if (Platform.OS === 'web') {
+        window.alert(t('tasks.load_error', 'Não foi possível carregar as tarefas'));
+      } else {
+        Alert.alert(t('common.error'), t('tasks.load_error', 'Não foi possível carregar as tarefas'));
+      }
     } finally {
       setLoading(false);
     }
@@ -67,7 +126,11 @@ export default function HomeScreen({ navigation }: any) {
     try {
       await getTasks();
     } catch (error) {
-      Alert.alert(t('common.error'), t('tasks.update_error', 'Não foi possível atualizar as tarefas'));
+      if (Platform.OS === 'web') {
+        window.alert(t('tasks.update_error', 'Não foi possível atualizar as tarefas'));
+      } else {
+        Alert.alert(t('common.error'), t('tasks.update_error', 'Não foi possível atualizar as tarefas'));
+      }
     } finally {
       setRefreshing(false);
     }
@@ -107,6 +170,14 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   const handleSkipTask = (taskId: string) => {
+    // On web, confirm() works better than Alert.alert
+    if (Platform.OS === 'web') {
+      if (window.confirm(t('tasks.skip_confirm_msg'))) {
+        skipTask(taskId);
+      }
+      return;
+    }
+
     Alert.alert(
       t('tasks.skip_confirm_title'),
       t('tasks.skip_confirm_msg'),
@@ -366,19 +437,21 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Category Filter */}
       <View style={styles.filterContainer}>
-        <FlatList
+        <ScrollView
+          ref={scrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={[{ id: null, label: t('common.all'), value: null, color: colors.primary, icon: 'layers-outline' }, ...categories]}
-          keyExtractor={(item) => item.id || 'all'}
           contentContainerStyle={styles.filterContent}
-          renderItem={({ item }) => {
+          style={Platform.OS === 'web' ? { flexGrow: 0 } : undefined}
+        >
+          {[{ id: null, label: t('common.all'), value: null, color: colors.primary, icon: 'layers-outline' }, ...categories].map((item) => {
             const color = item.color || colors.primary;
             const icon = item.icon || 'layers-outline';
             const isSelected = selectedCategory === item.id;
 
             return (
               <TouchableOpacity
+                key={item.id || 'all'}
                 style={[
                   styles.filterChip,
                   {
@@ -406,8 +479,8 @@ export default function HomeScreen({ navigation }: any) {
                 </Text>
               </TouchableOpacity>
             );
-          }}
-        />
+          })}
+        </ScrollView>
       </View>
 
       {/* Swipeable TabView */}
