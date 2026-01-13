@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUserStore } from '@store/userStore';
-import { familyService } from '@src/firebase';
-import { Colors } from '@styles/colors';
 import { useThemeColors } from '@hooks/useThemeColors';
+import { familyService } from '@src/firebase';
+import { useUserStore } from '@store/userStore';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FamilySetupScreen() {
     const [mode, setMode] = useState<'create' | 'join'>('create');
@@ -14,10 +14,11 @@ export default function FamilySetupScreen() {
 
     const user = useUserStore((state) => state.user);
     const themeColors = useThemeColors();
+    const { t } = useTranslation();
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            Alert.alert('Erro', 'Por favor, digite o nome da família.');
+            Alert.alert(t('common.error'), t('family.name_required'));
             return;
         }
         if (!user) return;
@@ -32,7 +33,7 @@ export default function FamilySetupScreen() {
             const { authService } = require('@services/authService'); // Avoid cycle?
             await authService.reloadUserProfile();
         } catch (error) {
-            Alert.alert('Erro', 'Falha ao criar família.');
+            Alert.alert(t('common.error'), t('family.create_error'));
         } finally {
             setLoading(false);
         }
@@ -40,7 +41,7 @@ export default function FamilySetupScreen() {
 
     const handleJoin = async () => {
         if (!code.trim() || code.length !== 6) {
-            Alert.alert('Erro', 'O código deve ter 6 caracteres.');
+            Alert.alert(t('common.error'), t('family.code_required'));
             return;
         }
         if (!user) return;
@@ -51,7 +52,7 @@ export default function FamilySetupScreen() {
             const { authService } = require('@services/authService');
             await authService.reloadUserProfile();
         } catch (error) {
-            Alert.alert('Erro', 'Código inválido ou erro ao entrar.');
+            Alert.alert(t('common.error'), t('family.join_error'));
         } finally {
             setLoading(false);
         }
@@ -63,9 +64,9 @@ export default function FamilySetupScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.content}>
-                    <Text style={styles.title}>Bem-vindo ao Agenda Familiar</Text>
+                    <Text style={styles.title}>{t('family.welcome')}</Text>
                     <Text style={styles.subtitle}>
-                        Para começar, você precisa criar uma nova família ou entrar em uma existente.
+                        {t('family.setup_subtitle')}
                     </Text>
 
                     <View style={styles.tabContainer}>
@@ -73,44 +74,44 @@ export default function FamilySetupScreen() {
                             style={[styles.tab, mode === 'create' && styles.activeTab]}
                             onPress={() => setMode('create')}
                         >
-                            <Text style={[styles.tabText, mode === 'create' && styles.activeTabText]}>Criar Família</Text>
+                            <Text style={[styles.tabText, mode === 'create' && styles.activeTabText]}>{t('family.create_family')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.tab, mode === 'join' && styles.activeTab]}
                             onPress={() => setMode('join')}
                         >
-                            <Text style={[styles.tabText, mode === 'join' && styles.activeTabText]}>Entrar com Código</Text>
+                            <Text style={[styles.tabText, mode === 'join' && styles.activeTabText]}>{t('family.join_with_code')}</Text>
                         </TouchableOpacity>
                     </View>
 
                     <View style={styles.form}>
                         {mode === 'create' ? (
                             <>
-                                <Text style={styles.label}>Nome da Família</Text>
+                                <Text style={styles.label}>{t('family.family_name')}</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Ex: Família Silva"
+                                    placeholder={t('family.family_name_placeholder')}
                                     placeholderTextColor={themeColors.textSecondary}
                                     value={name}
                                     onChangeText={setName}
                                 />
                                 <TouchableOpacity style={styles.button} onPress={handleCreate} disabled={loading}>
-                                    {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Criar Família</Text>}
+                                    {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>{t('family.create_family')}</Text>}
                                 </TouchableOpacity>
                             </>
                         ) : (
                             <>
-                                <Text style={styles.label}>Código da Família</Text>
+                                <Text style={styles.label}>{t('family.family_code')}</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Ex: X9J2K1"
+                                    placeholder={t('family.family_code_placeholder')}
                                     placeholderTextColor={themeColors.textSecondary}
                                     value={code}
                                     onChangeText={(t) => setCode(t.toUpperCase())}
                                     maxLength={6}
                                 />
                                 <TouchableOpacity style={styles.button} onPress={handleJoin} disabled={loading}>
-                                    {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar na Família</Text>}
+                                    {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>{t('family.enter_family')}</Text>}
                                 </TouchableOpacity>
                             </>
                         )}

@@ -4,20 +4,22 @@
  * Exibida enquanto verifica autenticação do usuário
  */
 
-import React from 'react';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { useThemeColors } from '@hooks/useThemeColors';
-import { Spacing, FontSize } from '@src/styles';
+import { FontSize, Spacing } from '@src/styles';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 export const SplashScreen: React.FC = () => {
     const colors = useThemeColors();
+    const { t } = useTranslation();
     const styles = createStyles(colors);
 
     return (
         <View style={styles.container}>
             <View style={styles.content}>
                 {/* Logo ou nome do app */}
-                <Text style={styles.title}>Agenda Familiar</Text>
+                <Text style={styles.title}>{t('auth.app_title')}</Text>
 
                 {/* Loading indicator */}
                 <ActivityIndicator
@@ -26,7 +28,7 @@ export const SplashScreen: React.FC = () => {
                     style={styles.loader}
                 />
 
-                <Text style={styles.subtitle}>Carregando...</Text>
+                <Text style={styles.subtitle}>{t('common.loading')}</Text>
             </View>
         </View>
     );

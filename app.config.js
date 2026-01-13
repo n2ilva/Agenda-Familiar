@@ -10,7 +10,7 @@ export default {
         icon: 'assets/adaptive-icon.png',
         scheme: 'agendafamiliar',
         userInterfaceStyle: 'automatic',
-        newArchEnabled: true,
+        newArchEnabled: false,
         ios: {
             supportsTablet: true,
             bundleIdentifier: 'com.natanael.agendafamiliar',
@@ -58,7 +58,8 @@ export default {
                     sounds: [],
                 },
             ],
-            '@react-native-google-signin/google-signin',
+            // Commented out for Expo Go compatibility - requires development build
+            // '@react-native-google-signin/google-signin',
         ],
         experiments: {
             typedRoutes: false,

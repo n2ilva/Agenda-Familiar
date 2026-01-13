@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import PickerModal from '@components/PickerModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
-import { spacing, fontSize } from '@styles/spacing';
-import { getCategoryLabel, getCategoryColor, CATEGORY_OPTIONS } from '@utils/taskUtils';
+import { fontSize, spacing } from '@styles/spacing';
 import type { Subtask } from '@types';
-import PickerModal from '@components/PickerModal';
+import { CATEGORY_OPTIONS, getCategoryColor, getCategoryLabel } from '@utils/taskUtils';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface TaskSubtasksProps {
   subtasks: Subtask[];
@@ -23,13 +24,14 @@ export const TaskSubtasks: React.FC<TaskSubtasksProps> = ({
   onRemove,
 }) => {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [newSubtaskCategory, setNewSubtaskCategory] = useState('');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
   const handleAdd = () => {
     if (!newSubtaskTitle.trim()) {
-      Alert.alert('Erro', 'Digite um título para a subtarefa');
+      Alert.alert(t('common.error'), t('tasks.subtask_title_required'));
       return;
     }
 
@@ -63,7 +65,7 @@ export const TaskSubtasks: React.FC<TaskSubtasksProps> = ({
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.label, { color: colors.text }]}>Subtarefas</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.subtasks')}</Text>
 
       <View style={styles.addSubtaskContainer}>
         <TextInput
@@ -74,7 +76,7 @@ export const TaskSubtasks: React.FC<TaskSubtasksProps> = ({
           ]}
           value={newSubtaskTitle}
           onChangeText={setNewSubtaskTitle}
-          placeholder="Nova subtarefa"
+          placeholder={t('tasks.new_subtask')}
           placeholderTextColor={colors.textSecondary}
         />
 
@@ -83,7 +85,7 @@ export const TaskSubtasks: React.FC<TaskSubtasksProps> = ({
           onPress={() => setShowCategoryPicker(true)}
         >
           <Text style={[styles.categoryButtonText, { color: newSubtaskCategory ? colors.text : colors.textSecondary }]}>
-            {newSubtaskCategory ? getCategoryLabel(newSubtaskCategory) : 'Categoria'}
+            {newSubtaskCategory ? getCategoryLabel(newSubtaskCategory) : t('tasks.category')}
           </Text>
         </TouchableOpacity>
 
@@ -108,7 +110,7 @@ export const TaskSubtasks: React.FC<TaskSubtasksProps> = ({
       <PickerModal
         visible={showCategoryPicker}
         onClose={() => setShowCategoryPicker(false)}
-        title="Selecionar Categoria"
+        title={t('tasks.select_category')}
         options={CATEGORY_OPTIONS}
         onSelect={(value: string) => {
           setNewSubtaskCategory(value);

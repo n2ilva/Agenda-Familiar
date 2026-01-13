@@ -1,5 +1,5 @@
+import type { Preferences, User } from '@types';
 import { firestore } from '../../config/firebase.config';
-import type { User } from '@types';
 
 const USERS_COLLECTION = 'users';
 
@@ -48,6 +48,21 @@ export const userService = {
             await firestore.collection(USERS_COLLECTION).doc(uid).update(updates);
         } catch (error) {
             console.error('[UserService] Error updating profile:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Atualiza as preferências do usuário (tema, idioma, notificações)
+     */
+    async updateUserPreferences(uid: string, preferences: Preferences): Promise<void> {
+        try {
+            await firestore.collection(USERS_COLLECTION).doc(uid).update({
+                preferences: preferences
+            });
+            console.log('[UserService] Preferences updated in Firebase:', preferences);
+        } catch (error) {
+            console.error('[UserService] Error updating preferences:', error);
             throw error;
         }
     },

@@ -177,7 +177,7 @@ export default function AddEditScreen({ route, navigation }: any) {
                 <View style={styles.endDateLeft}>
                   <Ionicons name="calendar-outline" size={20} color={colors.primary} />
                   <Text style={[styles.endDateLabel, { color: colors.text }]}>
-                    Termina em
+                    {t('tasks.ends_on')}
                   </Text>
                 </View>
                 <Switch
@@ -229,7 +229,7 @@ export default function AddEditScreen({ route, navigation }: any) {
                     <Text style={[styles.endDateText, { color: colors.text }]}>
                       {recurrenceEndDate
                         ? `${recurrenceEndDate.getDate().toString().padStart(2, '0')}/${(recurrenceEndDate.getMonth() + 1).toString().padStart(2, '0')}/${recurrenceEndDate.getFullYear()}`
-                        : 'Selecionar data'
+                        : t('tasks.select_date')
                       }
                     </Text>
                     <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -260,10 +260,10 @@ export default function AddEditScreen({ route, navigation }: any) {
                 <Ionicons name="lock-closed-outline" size={20} color={colors.primary} />
                 <View style={styles.privateToggleText}>
                   <Text style={[styles.label, { color: colors.text, marginBottom: 2 }]}>
-                    Tarefa Privada
+                    {t('tasks.private_task')}
                   </Text>
                   <Text style={[styles.privateToggleDescription, { color: colors.textSecondary }]}>
-                    Apenas você pode ver esta tarefa
+                    {t('tasks.private_task_desc')}
                   </Text>
                 </View>
               </View>

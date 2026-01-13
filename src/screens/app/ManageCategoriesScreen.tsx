@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    FlatList,
-    TouchableOpacity,
-    Alert,
-    StyleSheet,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import { useCategoryStore } from '@store/categoryStore';
-import { useThemeColors } from '@hooks/useThemeColors';
 import { CreateCategoryModal } from '@components/CreateCategoryModal';
+import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@hooks/useThemeColors';
+import { useCategoryStore } from '@store/categoryStore';
 import { useUserStore } from '@store/userStore';
 import type { Category } from '@types';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    Alert,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ManageCategoriesScreen({ navigation }: any) {
     const { t } = useTranslation();
@@ -27,25 +27,25 @@ export default function ManageCategoriesScreen({ navigation }: any) {
     const handleDeleteCategory = (category: Category) => {
         if (category.isDefault) {
             Alert.alert(
-                'Não é possível deletar',
-                'Categorias padrão não podem ser deletadas.'
+                t('categories.cannot_delete'),
+                t('categories.cannot_delete_default')
             );
             return;
         }
 
         Alert.alert(
-            'Deletar Categoria',
-            `Tem certeza que deseja deletar a categoria "${category.label}"?`,
+            t('categories.delete_category'),
+            `${t('categories.delete_confirm')} "${t(`categories.${category.id}`, { defaultValue: category.label })}"?`,
             [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Deletar',
+                    text: t('common.delete'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
                             await deleteCategory(category.id);
                         } catch (error) {
-                            Alert.alert('Erro', 'Não foi possível deletar a categoria');
+                            Alert.alert(t('common.error'), t('categories.delete_error'));
                         }
                     },
                 },
@@ -56,8 +56,8 @@ export default function ManageCategoriesScreen({ navigation }: any) {
     const handleEditCategory = (category: Category) => {
         if (category.isDefault) {
             Alert.alert(
-                'Não é possível editar',
-                'Categorias padrão não podem ser editadas.'
+                t('categories.cannot_edit'),
+                t('categories.cannot_edit_default')
             );
             return;
         }
@@ -81,7 +81,7 @@ export default function ManageCategoriesScreen({ navigation }: any) {
             setShowCreateModal(false);
             setEditingCategory(null);
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível salvar a categoria');
+            Alert.alert(t('common.error'), t('categories.save_error'));
         }
     };
 
@@ -110,10 +110,10 @@ export default function ManageCategoriesScreen({ navigation }: any) {
                     />
                     <View style={styles.categoryText}>
                         <Text style={[styles.categoryLabel, { color: colors.text }]}>
-                            {item.label}
+                            {t(`categories.${item.id}`, { defaultValue: item.label })}
                         </Text>
                         <Text style={[styles.categoryType, { color: colors.textSecondary }]}>
-                            {isCustom ? 'Personalizada' : 'Padrão'}
+                            {isCustom ? t('categories.custom') : t('categories.default')}
                         </Text>
                     </View>
                 </View>
@@ -145,7 +145,7 @@ export default function ManageCategoriesScreen({ navigation }: any) {
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, { color: colors.text }]}>
-                    Gerenciar Categorias
+                    {t('settings.manage_categories')}
                 </Text>
                 <TouchableOpacity
                     onPress={() => {
@@ -167,7 +167,7 @@ export default function ManageCategoriesScreen({ navigation }: any) {
                     <View style={styles.emptyContainer}>
                         <Ionicons name="folder-open-outline" size={64} color={colors.textSecondary} />
                         <Text style={[styles.emptyText, { color: colors.text }]}>
-                            Nenhuma categoria encontrada
+                            {t('categories.no_categories')}
                         </Text>
                     </View>
                 }

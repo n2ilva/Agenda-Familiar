@@ -10,16 +10,16 @@ import type { Task } from '@types';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-  View
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    useWindowDimensions,
+    View
 } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 import { createStyles } from './HomeScreen.styles';
@@ -41,10 +41,10 @@ export default function HomeScreen({ navigation }: any) {
   // Tab navigation state
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
-  const [routes] = useState([
+  const routes = useMemo(() => [
     { key: 'today', title: t('tasks.today') },
     { key: 'upcoming', title: t('tasks.upcoming') },
-  ]);
+  ], [t]);
 
   // Drag to scroll for web
   const scrollRef = useRef<ScrollView>(null);

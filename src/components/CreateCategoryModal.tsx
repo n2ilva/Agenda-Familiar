@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@hooks/useThemeColors';
-import { spacing, fontSize } from '@styles/spacing';
-import { IconPicker } from './IconPicker';
+import { fontSize, spacing } from '@styles/spacing';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    Alert,
+    Modal,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { ColorPicker } from './ColorPicker';
+import { IconPicker } from './IconPicker';
 
 interface CreateCategoryModalProps {
   visible: boolean;
@@ -38,6 +39,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   initialColor = '#4CC9F0',
 }) => {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('home-outline');
   const [selectedColor, setSelectedColor] = useState('#4CC9F0');
@@ -61,7 +63,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert('Erro', 'Digite um nome para a categoria');
+      Alert.alert(t('common.error'), t('categories.name_required'));
       return;
     }
 
@@ -92,7 +94,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>
-              {categoryId ? 'Editar Categoria' : 'Nova Categoria'}
+              {categoryId ? t('categories.edit_category') : t('categories.new_category')}
             </Text>
             <TouchableOpacity onPress={handleClose}>
               <Ionicons name="close" size={24} color={colors.text} />
@@ -110,13 +112,13 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               <Ionicons name={selectedIcon as any} size={32} color="#fff" />
             </View>
             <Text style={[styles.previewText, { color: colors.text }]}>
-              {name || 'Nome da categoria'}
+              {name || t('categories.category_name')}
             </Text>
           </View>
 
           {/* Name Input */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.text }]}>Nome</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('categories.name')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -128,7 +130,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               ]}
               value={name}
               onChangeText={setName}
-              placeholder="Ex: Trabalho, Estudos..."
+              placeholder={t('categories.name_placeholder')}
               placeholderTextColor={colors.textSecondary}
               maxLength={20}
             />
@@ -136,7 +138,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
 
           {/* Icon Picker */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.text }]}>Ícone</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('categories.icon')}</Text>
             <IconPicker
               selectedIcon={selectedIcon}
               onSelectIcon={setSelectedIcon}
@@ -145,7 +147,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
 
           {/* Color Picker */}
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.text }]}>Cor</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('categories.color')}</Text>
             <ColorPicker
               selectedColor={selectedColor}
               onSelectColor={setSelectedColor}
@@ -159,7 +161,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               onPress={handleClose}
             >
               <Text style={[styles.buttonText, { color: colors.text }]}>
-                Cancelar
+                {t('common.cancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -167,7 +169,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
               onPress={handleSave}
             >
               <Text style={[styles.buttonText, { color: '#fff' }]}>
-                Salvar
+                {t('common.save')}
               </Text>
             </TouchableOpacity>
           </View>

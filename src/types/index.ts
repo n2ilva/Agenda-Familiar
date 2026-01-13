@@ -48,6 +48,7 @@ export interface User {
   photoURL?: string;
   familyId?: string;
   role?: UserRole;
+  preferences?: Preferences;
 }
 
 export interface Family {

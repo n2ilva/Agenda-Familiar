@@ -1,14 +1,14 @@
-import React from 'react';
+import { useThemeColors } from '@hooks/useThemeColors';
+import { fontSize, spacing } from '@styles/spacing';
+import React, { useMemo } from 'react';
 import {
-  Modal,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  FlatList,
+    FlatList,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { Colors } from '@styles/colors';
-import { spacing, fontSize } from '@styles/spacing';
 
 interface PickerOption {
   label: string;
@@ -32,6 +32,9 @@ export default function PickerModal({
   onClose,
   onCreate,
 }: PickerModalProps) {
+  const colors = useThemeColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <Modal
       visible={visible}
@@ -82,14 +85,14 @@ export default function PickerModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingHorizontal: spacing.lg,
@@ -104,32 +107,31 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: Colors.light.text,
+    color: colors.text,
   },
   closeButton: {
     fontSize: fontSize.xl,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   option: {
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
+    borderBottomColor: colors.border,
   },
   optionText: {
     fontSize: fontSize.base,
-    color: Colors.light.text,
+    color: colors.text,
   },
   createOption: {
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
+    borderTopColor: colors.border,
     borderBottomWidth: 0,
     marginTop: spacing.sm,
   },
   createOptionText: {
     fontSize: fontSize.base,
-    color: Colors.primary,
+    color: colors.primary,
     fontWeight: '600',
   },
 });
-
 

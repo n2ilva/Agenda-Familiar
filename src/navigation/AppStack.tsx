@@ -15,6 +15,7 @@ import { useCategoryStore } from '@store/categoryStore';
 import { useTaskStore } from '@store/taskStore';
 import { useUserStore } from '@store/userStore';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -40,6 +41,7 @@ const getHeaderOptions = (colors: any, title: string, options?: any) => ({
 
 function SettingsStack() {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -54,16 +56,16 @@ function SettingsStack() {
         cardStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="SettingsMain" component={SettingsScreen} options={getHeaderOptions(colors, 'Configurações')} />
+      <Stack.Screen name="SettingsMain" component={SettingsScreen} options={getHeaderOptions(colors, t('settings.title'))} />
       <Stack.Screen
         name="FamilyMembers"
         component={FamilyMembersScreen}
-        options={getHeaderOptions(colors, 'Membros da Família')}
+        options={getHeaderOptions(colors, t('settings.manage_members'))}
       />
       <Stack.Screen
         name="Approvals"
         component={ApprovalsScreen}
-        options={getHeaderOptions(colors, 'Aprovações')}
+        options={getHeaderOptions(colors, t('settings.approvals'))}
       />
       <Stack.Screen
         name="ManageCategories"
@@ -111,6 +113,7 @@ function NotificationBadge() {
 
 function HomeStack() {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -128,7 +131,7 @@ function HomeStack() {
       <Stack.Screen
         name="HomeStack"
         component={HomeScreen}
-        options={getHeaderOptions(colors, 'Tarefas', {
+        options={getHeaderOptions(colors, t('tasks.title'), {
           headerRight: () => <NotificationBadge />,
         })}
       />
@@ -140,7 +143,7 @@ function HomeStack() {
       <Stack.Screen
         name="Approvals"
         component={ApprovalsScreen}
-        options={{ title: 'Aprovações' }}
+        options={{ title: t('settings.approvals') }}
       />
     </Stack.Navigator>
   );
@@ -148,6 +151,7 @@ function HomeStack() {
 
 function CalendarStack() {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -165,7 +169,7 @@ function CalendarStack() {
       <Stack.Screen
         name="CalendarMain"
         component={CalendarScreen}
-        options={getHeaderOptions(colors, 'Calendário')}
+        options={getHeaderOptions(colors, t('calendar.title'))}
       />
       <Stack.Screen
         name="AddEdit"
@@ -178,6 +182,7 @@ function CalendarStack() {
 
 export default function AppStack() {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
   const { initialize: initializeCategories, cleanup: cleanupCategories } = useCategoryStore();
   const { initialize: initializeTasks } = useTaskStore();
@@ -223,9 +228,9 @@ export default function AppStack() {
         headerTintColor: colors.text,
       })}
     >
-      <Tab.Screen name="Home" component={HomeStack} options={{ title: 'Tarefas' }} />
-      <Tab.Screen name="Calendar" component={CalendarStack} options={{ title: 'Calendário' }} />
-      <Tab.Screen name="Settings" component={SettingsStack} options={{ title: 'Configurações' }} />
+      <Tab.Screen name="Home" component={HomeStack} options={{ title: t('tasks.title') }} />
+      <Tab.Screen name="Calendar" component={CalendarStack} options={{ title: t('calendar.title') }} />
+      <Tab.Screen name="Settings" component={SettingsStack} options={{ title: t('settings.title') }} />
     </Tab.Navigator>
   );
 }

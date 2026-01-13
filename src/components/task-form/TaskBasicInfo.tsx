@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, TextInput, Text, StyleSheet } from 'react-native';
 import { useThemeColors } from '@hooks/useThemeColors';
-import { spacing, fontSize } from '@styles/spacing';
+import { fontSize, spacing } from '@styles/spacing';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 interface TaskBasicInfoProps {
   title: string;
@@ -21,10 +22,11 @@ export const TaskBasicInfo: React.FC<TaskBasicInfoProps> = ({
   onDescriptionChange,
 }) => {
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.section}>
-      <Text style={[styles.label, { color: colors.text }]}>Título *</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.task_title')} *</Text>
       <TextInput
         style={[
           styles.input,
@@ -36,11 +38,11 @@ export const TaskBasicInfo: React.FC<TaskBasicInfoProps> = ({
         ]}
         value={title}
         onChangeText={onTitleChange}
-        placeholder="Digite o título da tarefa"
+        placeholder={t('tasks.title_placeholder')}
         placeholderTextColor={colors.textSecondary}
       />
 
-      <Text style={[styles.label, { color: colors.text }]}>Descrição</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{t('tasks.task_description')}</Text>
       <TextInput
         style={[
           styles.input,
@@ -53,7 +55,7 @@ export const TaskBasicInfo: React.FC<TaskBasicInfoProps> = ({
         ]}
         value={description}
         onChangeText={onDescriptionChange}
-        placeholder="Digite a descrição (opcional)"
+        placeholder={t('tasks.description_placeholder')}
         placeholderTextColor={colors.textSecondary}
         multiline
         numberOfLines={4}

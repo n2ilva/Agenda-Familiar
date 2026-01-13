@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useUserStore } from '@store/userStore';
-import { useTaskStore } from '@store/taskStore';
-import { familyService, taskService } from '@src/firebase';
-import { Colors } from '@styles/colors';
 import { useThemeColors } from '@hooks/useThemeColors';
+import { familyService, taskService } from '@src/firebase';
+import { useTaskStore } from '@store/taskStore';
+import { useUserStore } from '@store/userStore';
 import type { ApprovalRequest } from '@types';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ApprovalsScreen() {
+    const { t } = useTranslation();
     const user = useUserStore((state) => state.user);
     const themeColors = useThemeColors();
     const styles = makeStyles(themeColors);
@@ -43,7 +44,7 @@ export default function ApprovalsScreen() {
 
             await familyService.processApproval(request.id, 'approved');
         } catch (error) {
-            Alert.alert('Erro', 'Falha ao aprovar solicitação.');
+            Alert.alert(t('common.error'), t('settings.approval_error'));
         }
     };
 
@@ -51,16 +52,16 @@ export default function ApprovalsScreen() {
         try {
             await familyService.processApproval(request.id, 'rejected');
         } catch (error) {
-            Alert.alert('Erro', 'Falha ao rejeitar.');
+            Alert.alert(t('common.error'), t('settings.reject_error'));
         }
     };
 
     const renderItem = ({ item }: { item: ApprovalRequest }) => {
         let actionText = '';
         switch (item.action) {
-            case 'update': actionText = 'Alteração'; break;
-            case 'delete': actionText = 'Exclusão'; break;
-            case 'complete': actionText = 'Conclusão'; break;
+            case 'update': actionText = t('settings.action_update'); break;
+            case 'delete': actionText = t('settings.action_delete'); break;
+            case 'complete': actionText = t('settings.action_complete'); break;
         }
 
         return (
@@ -69,15 +70,15 @@ export default function ApprovalsScreen() {
                     <Text style={styles.user}>{item.userName}</Text>
                     <Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</Text>
                 </View>
-                <Text style={styles.details}>Solicitou: <Text style={styles.bold}>{actionText}</Text></Text>
-                <Text style={styles.subDetails}>Tarefa ID: ...{item.taskId.slice(-4)}</Text>
+                <Text style={styles.details}>{t('settings.requested')}: <Text style={styles.bold}>{actionText}</Text></Text>
+                <Text style={styles.subDetails}>{t('settings.task_id')}: ...{item.taskId.slice(-4)}</Text>
 
                 <View style={styles.actions}>
                     <TouchableOpacity style={[styles.button, styles.rejectButton]} onPress={() => handleReject(item)}>
-                        <Text style={styles.buttonText}>Rejeitar</Text>
+                        <Text style={styles.buttonText}>{t('settings.reject')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.button, styles.approveButton]} onPress={() => handleApprove(item)}>
-                        <Text style={styles.buttonText}>Aprovar</Text>
+                        <Text style={styles.buttonText}>{t('settings.approve')}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -87,16 +88,16 @@ export default function ApprovalsScreen() {
     if (user?.role !== 'admin') {
         return (
             <View style={styles.container}>
-                <Text style={styles.emptyText}>Apenas administradores podem ver esta tela.</Text>
+                <Text style={styles.emptyText}>{t('settings.admin_only')}</Text>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Aprovações Pendentes</Text>
+            <Text style={styles.title}>{t('settings.approvals_title')}</Text>
             {requests.length === 0 ? (
-                <Text style={styles.emptyText}>Nenhuma solicitação pendente.</Text>
+                <Text style={styles.emptyText}>{t('settings.no_pending_requests')}</Text>
             ) : (
                 <FlatList
                     data={requests}

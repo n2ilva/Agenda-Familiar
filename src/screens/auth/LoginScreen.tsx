@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "@hooks/useThemeColors";
 import {
-  GOOGLE_IOS_CLIENT_ID,
-  GOOGLE_WEB_CLIENT_ID,
+    GOOGLE_IOS_CLIENT_ID,
+    GOOGLE_WEB_CLIENT_ID,
 } from "@src/config/googleAuth";
 import { authService, userService } from "@src/firebase";
 import firebase from "@src/firebase/config/firebase.config";
@@ -10,21 +10,22 @@ import { useUserStore } from "@store/userStore";
 import { fontSize, spacing } from "@styles/spacing";
 import { translateAuthError } from "@utils/authErrors";
 import {
-  configureGoogleSignin,
-  GoogleSignin,
-  statusCodes,
+    configureGoogleSignin,
+    GoogleSignin,
+    statusCodes,
 } from "@utils/googleSignin";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  Alert,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -40,6 +41,7 @@ export default function LoginScreen({ navigation }: any) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isGoogleConfigured, setIsGoogleConfigured] = useState(false);
   const colors = useThemeColors();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const configureGoogle = async () => {
@@ -244,7 +246,7 @@ export default function LoginScreen({ navigation }: any) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Erro", "Preencha todos os campos");
+      Alert.alert(t('common.error'), t('auth.fill_all_fields'));
       return;
     }
 
@@ -253,7 +255,7 @@ export default function LoginScreen({ navigation }: any) {
       const user = await authService.login(email, password);
       setUser(user);
     } catch (error: any) {
-      Alert.alert("Erro no Login", translateAuthError(error));
+      Alert.alert(t('auth.login_error'), translateAuthError(error));
     } finally {
       setLoading(false);
     }
@@ -270,10 +272,10 @@ export default function LoginScreen({ navigation }: any) {
       >
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.primary }]}>
-            Agenda Familiar
+            {t('auth.app_title')}
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Organize suas tarefas compartilhando com sua família e amigos
+            {t('auth.app_subtitle')}
           </Text>
 
           <View style={styles.form}>
@@ -282,7 +284,7 @@ export default function LoginScreen({ navigation }: any) {
                 styles.input,
                 { borderColor: colors.border, color: colors.text },
               ]}
-              placeholder="Email"
+              placeholder={t('auth.email')}
               placeholderTextColor={colors.textSecondary}
               value={email}
               onChangeText={setEmail}
@@ -295,7 +297,7 @@ export default function LoginScreen({ navigation }: any) {
             >
               <TextInput
                 style={[styles.passwordInput, { color: colors.text }]}
-                placeholder="Senha"
+                placeholder={t('auth.password')}
                 placeholderTextColor={colors.textSecondary}
                 value={password}
                 onChangeText={setPassword}
@@ -326,7 +328,7 @@ export default function LoginScreen({ navigation }: any) {
               {loading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.buttonText}>Entrar</Text>
+                <Text style={styles.buttonText}>{t('auth.login')}</Text>
               )}
             </TouchableOpacity>
 
@@ -337,7 +339,7 @@ export default function LoginScreen({ navigation }: any) {
               <Text
                 style={[styles.dividerText, { color: colors.textSecondary }]}
               >
-                ou
+                {t('common.or')}
               </Text>
               <View
                 style={[styles.dividerLine, { backgroundColor: colors.border }]}
@@ -369,7 +371,7 @@ export default function LoginScreen({ navigation }: any) {
                   <Text
                     style={[styles.googleButtonText, { color: colors.text }]}
                   >
-                    Entrar com Google
+                    {t('auth.login_with_google')}
                   </Text>
                 </>
               )}
@@ -378,14 +380,14 @@ export default function LoginScreen({ navigation }: any) {
 
           <View style={styles.footer}>
             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              Não tem conta?{" "}
+              {t('auth.no_account')}{" "}
             </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate("Register")}
               disabled={loading || isGoogleLoading}
             >
               <Text style={[styles.registerLink, { color: colors.primary }]}>
-                Criar
+                {t('auth.register')}
               </Text>
             </TouchableOpacity>
           </View>

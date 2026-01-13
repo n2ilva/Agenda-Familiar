@@ -77,7 +77,7 @@ export default function SettingsScreen({ navigation }: any) {
   const copyToClipboard = async () => {
     if (family?.code) {
       await Clipboard.setStringAsync(family.code);
-      Alert.alert('Sucesso', 'Código copiado para a área de transferência!');
+      Alert.alert(t('common.success'), t('settings.copy_success'));
     }
   };
 
@@ -367,7 +367,7 @@ export default function SettingsScreen({ navigation }: any) {
           {isGoogleLinked && (
             <View style={[styles.linkButton, { flex: 1, backgroundColor: colors.success + '20', borderColor: colors.success }]}>
               <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              <Text style={[styles.linkText, { color: colors.success }]}>Google vinculado</Text>
+              <Text style={[styles.linkText, { color: colors.success }]}>{t('settings.google_linked')}</Text>
             </View>
           )}
 
@@ -378,13 +378,13 @@ export default function SettingsScreen({ navigation }: any) {
               onPress={() => setShowPasswordModal(true)}
             >
               <Ionicons name="key-outline" size={20} color={colors.primary} />
-              <Text style={styles.linkText}>Definir Senha</Text>
+              <Text style={styles.linkText}>{t('settings.set_password')}</Text>
             </TouchableOpacity>
           )}
           {hasPassword && (
             <View style={[styles.linkButton, { flex: 1, backgroundColor: colors.success + '20', borderColor: colors.success }]}>
               <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-              <Text style={[styles.linkText, { color: colors.success }]}>Senha definida</Text>
+              <Text style={[styles.linkText, { color: colors.success }]}>{t('settings.password_set')}</Text>
             </View>
           )}
         </View>
@@ -466,8 +466,8 @@ export default function SettingsScreen({ navigation }: any) {
                 color={colors.primary}
               />
               <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>Trocar de Família</Text>
-                <Text style={styles.settingValue}>Entrar em outra família usando um código</Text>
+                <Text style={styles.settingLabel}>{t('settings.change_family')}</Text>
+                <Text style={styles.settingValue}>{t('settings.change_family_desc')}</Text>
               </View>
             </View>
             <Ionicons
@@ -563,8 +563,8 @@ export default function SettingsScreen({ navigation }: any) {
               color={colors.primary}
             />
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingLabel}>Gerenciar Categorias</Text>
-              <Text style={styles.settingValue}>Criar e deletar categorias personalizadas</Text>
+              <Text style={styles.settingLabel}>{t('settings.manage_categories')}</Text>
+              <Text style={styles.settingValue}>{t('settings.manage_categories_desc')}</Text>
             </View>
           </View>
           <Ionicons
@@ -631,14 +631,14 @@ export default function SettingsScreen({ navigation }: any) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Trocar de Família</Text>
+            <Text style={styles.modalTitle}>{t('settings.change_family_modal_title')}</Text>
             <Text style={styles.modalDescription}>
-              Insira o código da família que deseja entrar. Você irá sair da família atual e entrar na nova família como membro.
+              {t('settings.change_family_modal_desc')}
             </Text>
             
             <TextInput
               style={styles.modalInput}
-              placeholder="Digite o código da família"
+              placeholder={t('settings.change_family_placeholder')}
               placeholderTextColor={colors.textSecondary}
               value={newFamilyCode}
               onChangeText={setNewFamilyCode}
@@ -655,7 +655,7 @@ export default function SettingsScreen({ navigation }: any) {
                 }}
                 disabled={isChangingFamily}
               >
-                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
+                <Text style={styles.modalButtonCancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -664,7 +664,7 @@ export default function SettingsScreen({ navigation }: any) {
                 disabled={isChangingFamily}
               >
                 <Text style={styles.modalButtonConfirmText}>
-                  {isChangingFamily ? 'Entrando...' : 'Confirmar'}
+                  {isChangingFamily ? t('settings.joining') : t('settings.confirm')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -681,14 +681,14 @@ export default function SettingsScreen({ navigation }: any) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Definir Senha</Text>
+            <Text style={styles.modalTitle}>{t('settings.set_password_modal_title')}</Text>
             <Text style={styles.modalDescription}>
-              Defina uma senha para poder fazer login com email e senha, além do Google.
+              {t('settings.set_password_modal_desc')}
             </Text>
             
             <TextInput
               style={styles.modalInput}
-              placeholder="Nova senha (mínimo 6 caracteres)"
+              placeholder={t('settings.new_password_placeholder')}
               placeholderTextColor={colors.textSecondary}
               value={newPassword}
               onChangeText={setNewPassword}
@@ -698,7 +698,7 @@ export default function SettingsScreen({ navigation }: any) {
 
             <TextInput
               style={styles.modalInput}
-              placeholder="Confirmar senha"
+              placeholder={t('settings.confirm_password_placeholder')}
               placeholderTextColor={colors.textSecondary}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -716,7 +716,7 @@ export default function SettingsScreen({ navigation }: any) {
                 }}
                 disabled={isSettingPassword}
               >
-                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
+                <Text style={styles.modalButtonCancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -725,7 +725,7 @@ export default function SettingsScreen({ navigation }: any) {
                 disabled={isSettingPassword}
               >
                 <Text style={styles.modalButtonConfirmText}>
-                  {isSettingPassword ? 'Definindo...' : 'Confirmar'}
+                  {isSettingPassword ? t('settings.setting') : t('settings.confirm')}
                 </Text>
               </TouchableOpacity>
             </View>
