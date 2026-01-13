@@ -9,12 +9,13 @@ import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import i18n from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, useWindowDimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import './src/config/i18n';
 
 export default function App() {
+  const { width } = useWindowDimensions();
   const [isLoading, setIsLoading] = useState(true);
   const setUser = useUserStore((state) => state.setUser);
   const loadPreferences = useUserStore((state) => state.loadPreferences);
@@ -24,6 +25,16 @@ export default function App() {
   const initializeTasks = useTaskStore((state) => state.initialize);
   const initializeCategories = useCategoryStore((state) => state.initialize);
   const cleanupCategories = useCategoryStore((state) => state.cleanup);
+
+  // Responsividade WEB
+  const isLargeScreen = width >= 1024;
+  const webContainerStyle = Platform.OS === 'web' ? {
+    maxWidth: (isLargeScreen ? '70%' : '100%') as any,
+    width: '100%' as any,
+    alignSelf: 'center' as const,
+    minHeight: (isLargeScreen ? '100vh' : '100%') as any,
+    backgroundColor: colors.background,
+  } : { flex: 1 };
 
   useEffect(() => {
     // Load saved preferences first
@@ -100,71 +111,38 @@ export default function App() {
         return;
       }
 
-      console.log('[App] Action details:', { actionIdentifier, taskId, taskTitle });
-
       const { toggleTask, skipTask, tasks } = useTaskStore.getState();
       const currentUser = useUserStore.getState().user;
 
-      console.log('[App] Current State:', {
-        hasTasks: tasks.length > 0,
-        hasUser: !!currentUser,
-        userRole: currentUser?.role
-      });
-
       let task = tasks.find(t => t.id === taskId);
 
-      // Se a tarefa não estiver no store (ex: app acabou de abrir pela notificação)
-      // tentamos buscar diretamente do serviço
       if (!task) {
-        console.log('[App] Task not found in store, fetching from service...');
         try {
           const fetchedTask = await taskService.getTaskById(taskId);
           if (fetchedTask) {
             task = fetchedTask;
-            console.log('[App] Task fetched successfully:', task.title);
           }
         } catch (error) {
           console.error('[App] Error fetching task from service:', error);
         }
       }
 
-      if (!task) {
-        console.error('[App] Could not find task for notification action:', taskId);
-        return;
-      }
+      if (!task) return;
 
-      // IMPORTANTE: Se o usuário não estiver carregado no Store ainda, 
-      // precisamos esperar ou carregar. Em cold starts, o listener pode rodar antes do Auth.
       if (!currentUser) {
-        console.log('[App] User not loaded yet, waiting 2 seconds for Auth...');
-        // Simplificação: esperar um pouco. O ideal seria subscrever ao userStore.
         await new Promise(resolve => setTimeout(resolve, 2000));
         const retryUser = useUserStore.getState().user;
-        if (!retryUser) {
-          console.error('[App] User still not loaded after wait. Action aborted.');
-          return;
-        }
-        console.log('[App] User loaded after wait:', retryUser.email);
+        if (!retryUser) return;
       }
 
       try {
         if (actionIdentifier === 'complete') {
-          console.log('[App] Executing Complete action...');
-          // Mark task as completed (toggleTask handles recurrence)
           if (!task.completed) {
             await toggleTask(taskId);
-            console.log('[App] Task completed via notification successfully');
-          } else {
-            console.log('[App] Task followed by "complete" was already completed.');
           }
         } else if (actionIdentifier === 'skip') {
-          console.log('[App] Executing Skip action...');
-          // Skip task (for recurring tasks)
           if (task.recurrence && task.recurrence !== 'none') {
             await skipTask(taskId);
-            console.log('[App] Task skipped via notification successfully');
-          } else {
-            console.log('[App] Task followed by "skip" is not recurring.');
           }
         }
       } catch (error) {
@@ -177,7 +155,6 @@ export default function App() {
 
   useEffect(() => {
     if (preferences.language) {
-      console.log('[App] Syncing i18n language:', preferences.language);
       i18n.changeLanguage(preferences.language);
     }
   }, [preferences.language]);
@@ -189,12 +166,11 @@ export default function App() {
     }
   }, [colors.background]);
 
-  // Mostra SplashScreen enquanto verifica autenticação
   if (isLoading) {
     return (
       <GestureHandlerRootView style={[styles.root, { backgroundColor: colors.background }]}>
         <SafeAreaProvider>
-          <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right']}>
+          <SafeAreaView style={[webContainerStyle, { backgroundColor: colors.background }]} edges={['left', 'right']}>
             <StatusBar style={preferences.theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
             <SplashScreen />
           </SafeAreaView>
@@ -206,7 +182,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={[styles.root, { backgroundColor: colors.background }]}>
       <SafeAreaProvider>
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right']}>
+        <SafeAreaView style={[webContainerStyle, { backgroundColor: colors.background }]} edges={['left', 'right']}>
           <StatusBar style={preferences.theme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
           <RootNavigator />
         </SafeAreaView>
@@ -218,15 +194,5 @@ export default function App() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  container: {
-    flex: 1,
-    ...Platform.select({
-      web: {
-        maxWidth: '75%',
-        width: '100%',
-        alignSelf: 'center',
-      },
-    }),
   },
 });

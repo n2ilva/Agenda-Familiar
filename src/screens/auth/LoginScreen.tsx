@@ -38,25 +38,42 @@ export default function LoginScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const setUser = useUserStore((state) => state.setUser);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGoogleConfigured, setIsGoogleConfigured] = useState(false);
   const colors = useThemeColors();
 
   useEffect(() => {
-    if (GOOGLE_WEB_CLIENT_ID || GOOGLE_IOS_CLIENT_ID) {
-      console.log("[LoginScreen] Configuring Google Sign-In with:", {
-        webClientId: GOOGLE_WEB_CLIENT_ID,
-        iosClientId: GOOGLE_IOS_CLIENT_ID,
-      });
+    const configureGoogle = async () => {
+      // Só configura no mobile - na web usamos Firebase Auth diretamente
+      if (Platform.OS === 'web') {
+        setIsGoogleConfigured(true);
+        return;
+      }
 
-      try {
-        configureGoogleSignin({
+      if (GOOGLE_WEB_CLIENT_ID || GOOGLE_IOS_CLIENT_ID) {
+        console.log("[LoginScreen] Configuring Google Sign-In with:", {
           webClientId: GOOGLE_WEB_CLIENT_ID,
           iosClientId: GOOGLE_IOS_CLIENT_ID,
-          offlineAccess: true,
         });
-      } catch (error) {
-        console.error("[LoginScreen] Google Sign-In Configuration Error:", error);
+
+        try {
+          configureGoogleSignin({
+            webClientId: GOOGLE_WEB_CLIENT_ID,
+            iosClientId: GOOGLE_IOS_CLIENT_ID,
+            offlineAccess: true,
+          });
+          setIsGoogleConfigured(true);
+          console.log("[LoginScreen] Google Sign-In configured successfully");
+        } catch (error) {
+          console.error("[LoginScreen] Google Sign-In Configuration Error:", error);
+          setIsGoogleConfigured(false);
+        }
+      } else {
+        console.warn("[LoginScreen] No Google Client IDs configured");
+        setIsGoogleConfigured(false);
       }
-    }
+    };
+
+    configureGoogle();
   }, []);
 
   /**
@@ -96,9 +113,20 @@ export default function LoginScreen({ navigation }: any) {
         }
       } else {
         // Fluxo MOBILE (Nativo)
+        // Verificar se o Google Sign-In foi configurado
+        if (!isGoogleConfigured) {
+          console.error("[LoginScreen] Google Sign-In not configured yet");
+          Alert.alert(
+            "Erro de Configuração",
+            "O login com Google não está disponível. Verifique se as credenciais foram configuradas corretamente."
+          );
+          setIsGoogleLoading(false);
+          return;
+        }
+
         // Check for Play Services on Android
         if (Platform.OS === "android") {
-          await GoogleSignin.hasPlayServices();
+          await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
         }
 
         // Start Google Sign-In flow
